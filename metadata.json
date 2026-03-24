@@ -1,0 +1,7 @@
+{
+  "name": "Terraform: The Floating Archipelago",
+  "description": "A gamified environmental restoration platform where users revitalize 3D floating islands representing real-world ecosystems using a botanist's toolkit.",
+  "requestFramePermissions": [
+    "geolocation"
+  ]
+}
