@@ -316,31 +316,31 @@ export const ImpactMap: React.FC<{ onBack: () => void }> = ({ onBack }) => {
 
       {/* Selected Org Side Info Card - z-40 */}
       {selectedFeatureProps && (
-        <div className="absolute right-6 md:right-10 top-32 md:top-40 bottom-44 w-full max-w-[320px] md:max-w-[360px] bg-[#0b1120]/95 backdrop-blur-3xl border border-slate-700 p-8 rounded-[3rem] shadow-2xl z-40 flex flex-col animate-in slide-in-from-right-full duration-500 group pointer-events-auto">
-          <button type="button" onClick={() => setSelectedOrg(null)} className="absolute top-6 right-6 p-3 hover:bg-slate-800 rounded-2xl text-slate-400 hover:text-white transition-colors">
-            <Target size={20} className="rotate-45" />
+        <div className="absolute right-4 md:right-10 top-24 md:top-40 bottom-28 md:bottom-44 w-full max-w-[260px] md:max-w-[360px] bg-[#0b1120]/95 backdrop-blur-3xl border border-slate-700 p-5 md:p-8 rounded-[2rem] md:rounded-[3rem] shadow-2xl z-40 flex flex-col animate-in slide-in-from-right-full duration-500 group pointer-events-auto overflow-y-auto min-h-[300px]">
+          <button type="button" onClick={() => setSelectedOrg(null)} className="absolute top-4 md:top-6 right-4 md:right-6 p-2 md:p-3 hover:bg-slate-800 rounded-xl md:rounded-2xl text-slate-400 hover:text-white transition-colors">
+            <Target size={16} className="rotate-45 md:w-5 md:h-5" />
           </button>
           
-          <div className="flex items-center gap-4 mb-8">
-             <div className="w-16 h-16 rounded-[1.5rem] flex items-center justify-center bg-slate-800 border-2 border-slate-700 shadow-inner group-hover:scale-110 transition-transform duration-500 shrink-0">
-               <Leaf size={32} className="text-[#20d69b]" />
+          <div className="flex items-center gap-3 md:gap-4 mb-4 md:mb-8 pr-6">
+             <div className="w-12 h-12 md:w-16 md:h-16 rounded-xl md:rounded-[1.5rem] flex items-center justify-center bg-slate-800 border-2 border-slate-700 shadow-inner group-hover:scale-110 transition-transform duration-500 shrink-0">
+               <Leaf className="w-6 h-6 md:w-8 md:h-8 text-[#20d69b]" />
              </div>
              <div>
-               <div className="flex items-center gap-2 text-[9px] font-black uppercase tracking-widest text-[#20d69b] mb-1">
-                 <MapPin size={12} /> Selected Scope
+               <div className="flex items-center gap-1.5 md:gap-2 text-[8px] md:text-[9px] font-black uppercase tracking-[0.2em] text-[#20d69b] mb-0.5 md:mb-1">
+                 <MapPin size={10} className="md:w-3 md:h-3" /> Selected Scope
                </div>
-               <h3 className="text-lg font-serif text-white tracking-tight leading-tight">{selectedFeatureProps.organization_name}</h3>
+               <h3 className="text-sm md:text-lg font-serif text-white tracking-tight leading-tight">{selectedFeatureProps.organization_name}</h3>
              </div>
           </div>
           
-          <div className="space-y-4 flex-1">
-            <div className="bg-slate-800/50 p-5 rounded-3xl border border-slate-700/50 shadow-inner flex flex-col items-center justify-center py-8">
-              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 block mb-2 text-center">Trees Planted</span>
-              <span className="text-4xl font-bold text-[#20d69b] font-serif">{selectedFeatureProps.trees_planted.toLocaleString()}</span>
+          <div className="flex flex-col gap-3 flex-1 overflow-y-auto pr-1">
+            <div className="bg-slate-800/50 p-4 md:p-5 rounded-2xl md:rounded-3xl border border-slate-700/50 shadow-inner flex flex-col items-center justify-center py-5 md:py-8">
+              <span className="text-[8px] md:text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 block mb-1 md:mb-2 text-center">Trees Planted</span>
+              <span className="text-2xl md:text-4xl font-bold text-[#20d69b] font-serif">{selectedFeatureProps.trees_planted.toLocaleString()}</span>
             </div>
-            <div className="bg-slate-800/50 p-5 rounded-3xl border border-slate-700/50 shadow-inner flex flex-col items-center justify-center py-8">
-              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 block mb-2 text-center">Land Coverage (HA)</span>
-              <span className="text-4xl font-bold text-white font-serif">{selectedFeatureProps.area_ha.toLocaleString()}</span>
+            <div className="bg-slate-800/50 p-4 md:p-5 rounded-2xl md:rounded-3xl border border-slate-700/50 shadow-inner flex flex-col items-center justify-center py-5 md:py-8">
+              <span className="text-[8px] md:text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 block mb-1 md:mb-2 text-center">Land Coverage (HA)</span>
+              <span className="text-2xl md:text-4xl font-bold text-white font-serif">{selectedFeatureProps.area_ha.toLocaleString()}</span>
             </div>
           </div>
           
