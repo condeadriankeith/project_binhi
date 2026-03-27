@@ -231,7 +231,7 @@ export const ImpactMap: React.FC<{ onBack: () => void }> = ({ onBack }) => {
           <button 
             type="button"
             onClick={onBack}
-            className="pointer-events-auto bg-[#0b1120]/80 backdrop-blur-xl border border-slate-700 p-3 md:p-4 rounded-2xl hover:bg-slate-800 transition-all flex items-center gap-3 shadow-2xl group"
+            className="ml-16 md:ml-20 pointer-events-auto bg-[#0b1120]/80 backdrop-blur-xl border border-slate-700 p-3 md:p-4 rounded-2xl hover:bg-slate-800 transition-all flex items-center gap-3 shadow-2xl group"
           >
             <ArrowLeft size={18} className="text-[#20d69b] group-hover:-translate-x-1 transition-transform" />
             <span className="hidden md:inline text-[10px] font-black uppercase tracking-[0.2em] text-slate-300">Return to Axis</span>

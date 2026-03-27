@@ -20,7 +20,7 @@ const App: React.FC = () => {
   const [currentView, setCurrentView] = useState<View>('island');
   const [activeOrgIndex, setActiveOrgIndex] = useState(0);
   const [orgs, setOrgs] = useState<Organization[]>(ORGANIZATIONS);
-  const [isHubCollapsed, setIsHubCollapsed] = useState(false);
+  const [isHubCollapsed, setIsHubCollapsed] = useState(true);
   const [showProfile, setShowProfile] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(true);

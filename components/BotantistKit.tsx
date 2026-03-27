@@ -10,7 +10,7 @@ interface Props {
 }
 
 export const BotanistKit: React.FC<Props> = ({ balance, selectedTool, onSelect }) => {
-  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(true);
 
   return (
     <div className="fixed bottom-0 left-0 w-full z-50 pointer-events-none flex justify-center pb-2 md:pb-8 px-2 animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-500 fill-mode-both">

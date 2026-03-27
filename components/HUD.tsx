@@ -18,7 +18,7 @@ export const HUD: React.FC<Props> = ({
   onCommunityClick,
   onAssistantClick 
 }) => {
-  const [isStatsCollapsed, setIsStatsCollapsed] = useState(false);
+  const [isStatsCollapsed, setIsStatsCollapsed] = useState(true);
   
   const flightHours = (totalCo2 / 0.8).toFixed(1);
   const level = Math.floor(treesPlanted / 8) + 1;
