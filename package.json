@@ -20,6 +20,10 @@
     "three": "0.174.0",
     "serve": "^14.2.4"
   },
+  "overrides": {
+    "react": "19.0.0",
+    "react-dom": "19.0.0"
+  },
   "devDependencies": {
     "@types/node": "^22.14.0",
     "@types/react": "^19.2.14",
