@@ -45,12 +45,18 @@ const LowPolyTree = ({ type, rotation = 0, targetScale = 1 }: { type: ItemType; 
 
   const treeConfig = useMemo(() => {
     switch (type) {
-      case ItemType.CEDAR: return { height: 1.8, width: 0.4, detail: 5, leaves: 3, leafColor: '#2D6A4F', trunkColor: '#4A3728' };
-      case ItemType.MAPLE: return { height: 1.4, width: 0.7, detail: 7, leaves: 1, leafColor: '#D95D39', trunkColor: '#5C4033' };
-      case ItemType.SPRUCE: return { height: 2.0, width: 0.45, detail: 4, leaves: 4, leafColor: '#1B4332', trunkColor: '#3E2723' };
-      case ItemType.WILLOW: return { height: 1.5, width: 0.8, detail: 8, leaves: 2, leafColor: '#74A57F', trunkColor: '#4E342E' };
-      case ItemType.HORNBEAM: return { height: 1.3, width: 0.6, detail: 6, leaves: 2, leafColor: '#409167', trunkColor: '#5D4037' };
-      default: return { height: 1.2, width: 0.5, detail: 6, leaves: 2, leafColor: '#409167', trunkColor: '#5D4037' };
+      case ItemType.HORNBEAM: // Narra
+        return { height: 1.6, width: 0.8, detail: 8, leaves: 3, leafColor: '#2D6B22', trunkColor: '#4A3728' };
+      case ItemType.CEDAR: // Molave
+        return { height: 1.8, width: 0.6, detail: 6, leaves: 2, leafColor: '#3F704D', trunkColor: '#6D4C41' };
+      case ItemType.MAPLE: // Yakal
+        return { height: 2.2, width: 0.5, detail: 5, leaves: 4, leafColor: '#1B4332', trunkColor: '#3E2723' };
+      case ItemType.SPRUCE: // Banuyo
+        return { height: 1.4, width: 0.9, detail: 7, leaves: 2, leafColor: '#409167', trunkColor: '#5D4037' };
+      case ItemType.WILLOW: // Malugai
+        return { height: 1.5, width: 0.7, detail: 8, leaves: 1, leafColor: '#D95D39', trunkColor: '#5C4033' };
+      default:
+        return { height: 1.2, width: 0.5, detail: 6, leaves: 2, leafColor: '#409167', trunkColor: '#5D4037' };
     }
   }, [type]);
 
@@ -267,10 +273,11 @@ export const IslandScene: React.FC<{
   islandColor: string,
   waterColor: string,
   accentColor: string,
-  orgIndex: number
-}> = ({ tiles, onTileClick, islandColor, waterColor, accentColor, orgIndex }) => {
+  orgIndex: number,
+  isDarkMode: boolean
+}> = ({ tiles, onTileClick, islandColor, waterColor, accentColor, orgIndex, isDarkMode }) => {
   return (
-    <div className="w-full h-full absolute inset-0 z-0 bg-[#0B1120]">
+    <div className={`w-full h-full absolute inset-0 z-0 transition-colors duration-1000 ${isDarkMode ? 'bg-[#0B1120]' : 'bg-[#E3F2FD]'}`}>
       <Canvas 
         dpr={[1, 2]} 
         shadows 
@@ -283,14 +290,14 @@ export const IslandScene: React.FC<{
         <WebGLCleanup />
         <PerspectiveCamera makeDefault position={[14, 16, 14]} fov={35} />
         
-        <Stars radius={100} depth={50} count={5000} factor={4} saturation={0} fade speed={1} />
-        <Environment preset="night" />
-        <ambientLight intensity={0.2} color="#ffffff" />
+        {isDarkMode && <Stars radius={100} depth={50} count={5000} factor={4} saturation={0} fade speed={1} />}
+        <Environment preset={isDarkMode ? "night" : "apartment"} />
+        <ambientLight intensity={isDarkMode ? 0.2 : 0.6} color={isDarkMode ? "#ffffff" : "#fff9e6"} />
         
-        {/* Main Moon Light */}
+        {/* Main Light (Moon or Sun) */}
         <directionalLight 
-            position={[15, 25, 10]} 
-            intensity={0.8} 
+            position={isDarkMode ? [15, 25, 10] : [20, 30, 20]} 
+            intensity={isDarkMode ? 0.8 : 1.5} 
             castShadow 
             shadow-mapSize={[2048, 2048]}
             shadow-camera-near={0.5}
@@ -300,11 +307,11 @@ export const IslandScene: React.FC<{
             shadow-camera-top={10}
             shadow-camera-bottom={-10}
             shadow-bias={-0.0001}
-            color="#E2E8F0"
+            color={isDarkMode ? "#E2E8F0" : "#FFF7CC"}
         />
         
         {/* Fill Light */}
-        <directionalLight position={[-10, 10, -10]} intensity={0.3} color="#3B82F6" />
+        <directionalLight position={[-10, 10, -10]} intensity={isDarkMode ? 0.3 : 0.5} color={isDarkMode ? "#3B82F6" : "#E3F2FD"} />
         
         <OrbitControls 
             enablePan={false} 

@@ -32,14 +32,11 @@ export const HUD: React.FC<Props> = ({
         
         {/* Left: User & AI */}
         <div className="flex flex-col gap-2 md:gap-3">
-          <button className="bg-slate-900/60 backdrop-blur-xl border border-slate-700/50 shadow-lg p-2.5 md:p-4 rounded-xl md:rounded-2xl hover:bg-slate-800 transition-all active:scale-95 group">
-            <User size={18} md:size={20} className="text-slate-300 group-hover:text-emerald-400 transition-colors" />
-          </button>
           <button 
             onClick={onAssistantClick}
-            className="bg-emerald-950/60 backdrop-blur-xl border border-emerald-800/50 shadow-lg p-2.5 md:p-4 rounded-xl md:rounded-2xl hover:bg-emerald-900 transition-all active:scale-95 relative group"
+            className="bg-emerald-950/60 backdrop-blur-xl border border-emerald-800/50 shadow-lg p-2 md:p-4 rounded-xl md:rounded-2xl hover:bg-emerald-900 transition-all active:scale-95 relative group pointer-events-auto"
           >
-            <Sparkles size={18} md:size={20} className="text-emerald-400 group-hover:animate-pulse" />
+            <Sparkles size={20} className="text-emerald-400 group-hover:animate-pulse" />
             <div className="absolute left-full ml-4 top-1/2 -translate-y-1/2 opacity-0 md:group-hover:opacity-100 transition-opacity whitespace-nowrap bg-emerald-950 text-white text-[10px] px-3 py-1.5 rounded-lg font-bold uppercase tracking-widest pointer-events-none hidden md:block">
               AI Insight
             </div>
@@ -49,7 +46,7 @@ export const HUD: React.FC<Props> = ({
         {/* Center: Title & Level */}
         <div className="flex flex-col items-center bg-slate-900/60 backdrop-blur-2xl border border-slate-700/50 shadow-xl px-4 md:px-10 py-2 md:py-4 rounded-2xl md:rounded-3xl max-w-[180px] md:max-w-none">
            <div className="flex items-center gap-1.5 md:gap-2 text-[8px] md:text-[10px] font-bold text-emerald-400 uppercase tracking-[0.2em] mb-0.5 md:mb-1">
-              <Leaf size={10} md:size={12} className="text-emerald-500" />
+              <Leaf size={12} className="text-emerald-500" />
               <span>Level {level}</span>
            </div>
            <h1 className="font-serif text-lg md:text-3xl text-white tracking-tight truncate w-full text-center">{forestName}</h1>
@@ -59,9 +56,9 @@ export const HUD: React.FC<Props> = ({
         <div className="flex flex-col gap-3">
           <button 
             onClick={onCommunityClick}
-            className="bg-slate-900/60 backdrop-blur-xl border border-slate-700/50 shadow-lg p-2.5 md:p-4 rounded-xl md:rounded-2xl hover:bg-slate-800 transition-all active:scale-95 group"
+            className="bg-slate-900/60 backdrop-blur-xl border border-slate-700/50 shadow-lg p-2 md:p-4 rounded-xl md:rounded-2xl hover:bg-slate-800 transition-all active:scale-95 group pointer-events-auto"
           >
-            <Globe size={18} md:size={20} className="text-slate-300 group-hover:text-emerald-400 transition-colors" />
+            <Globe size={20} className="text-slate-300 group-hover:text-emerald-400 transition-colors" />
           </button>
         </div>
       </div>
@@ -79,12 +76,12 @@ export const HUD: React.FC<Props> = ({
           {isStatsCollapsed ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
         </button>
 
-        <div className={`flex flex-col md:flex-row justify-between items-end md:items-center w-full gap-3 md:gap-4 transition-all duration-500 ease-in-out origin-bottom ${isStatsCollapsed ? 'max-h-0 opacity-0 scale-95 pointer-events-none' : 'max-h-96 opacity-100 scale-100'}`}>
+        <div className={`flex flex-col md:flex-row justify-between items-end md:items-center w-full gap-2 md:gap-4 transition-all duration-500 ease-in-out origin-bottom ${isStatsCollapsed ? 'max-h-0 opacity-0 scale-95 pointer-events-none' : 'max-h-96 opacity-100 scale-100'}`}>
           {/* Left: Balance & Stats */}
           <div className="flex flex-col gap-2 md:gap-3 w-full md:w-auto">
-            <div className="bg-slate-900/60 backdrop-blur-xl border border-slate-700/50 px-4 md:px-5 py-2 md:py-3 rounded-xl md:rounded-2xl shadow-lg flex items-center gap-3 md:gap-4">
+            <div className="bg-slate-900/60 backdrop-blur-xl border border-slate-700/50 px-3 md:px-5 py-2 md:py-3 rounded-xl md:rounded-2xl shadow-lg flex items-center gap-2 md:gap-4">
               <div className="bg-emerald-900/50 p-1.5 md:p-2 rounded-lg md:rounded-xl">
-                <TrendingUp size={16} md:size={18} className="text-emerald-400" />
+                <TrendingUp size={18} className="text-emerald-400" />
               </div>
               <div className="flex flex-col">
                 <span className="text-[8px] md:text-[10px] uppercase font-bold text-slate-400 tracking-wider">Funds</span>

@@ -21,7 +21,7 @@ export const BotanistKit: React.FC<Props> = ({ balance, selectedTool, onSelect }
           onClick={() => setIsCollapsed(!isCollapsed)}
           className="bg-slate-900/95 backdrop-blur-xl border border-slate-700/50 border-b-0 rounded-t-2xl px-4 md:px-6 py-1.5 md:py-2 flex items-center gap-2 md:gap-3 shadow-[0_-10px_40px_rgba(0,0,0,0.2)] hover:bg-slate-800 transition-colors group"
         >
-          <Sprout size={12} md:size={14} className="text-emerald-400 group-hover:scale-110 transition-transform" />
+          <Sprout size={14} className="text-emerald-400 group-hover:scale-110 transition-transform" />
           <span className="text-[9px] md:text-[10px] uppercase tracking-[0.2em] text-emerald-400 font-bold">
             Seed Vault
           </span>

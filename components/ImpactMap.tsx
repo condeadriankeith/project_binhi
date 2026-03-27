@@ -2,77 +2,9 @@ import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { ArrowLeft, MapPin, Target, Play, Pause, Filter, Clock, Leaf } from 'lucide-react';
 import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
+import { IMPACT_GEOJSON } from '../data/impactGeoData';
 
-const mockCoverageData = {
-  "type": "FeatureCollection",
-  "features": [
-    {
-      "type": "Feature",
-      "properties": {
-        "id": 1,
-        "organization_name": "BAKURAN",
-        "trees_planted": 15000,
-        "area_ha": 120
-      },
-      "geometry": {
-        "type": "Polygon",
-        "coordinates": [
-          [
-            [123.150, 10.650],
-            [123.180, 10.650],
-            [123.180, 10.620],
-            [123.150, 10.620],
-            [123.150, 10.650]
-          ]
-        ]
-      }
-    },
-    {
-      "type": "Feature",
-      "properties": {
-        "id": 2,
-        "organization_name": "Talarak Foundation",
-        "trees_planted": 32000,
-        "area_ha": 250
-      },
-      "geometry": {
-        "type": "Polygon",
-        "coordinates": [
-          [
-            [122.950, 10.550],
-            [123.000, 10.550],
-            [123.000, 10.500],
-            [122.950, 10.500],
-            [122.950, 10.550]
-          ]
-        ]
-      }
-    },
-    {
-      "type": "Feature",
-      "properties": {
-        "id": 3,
-        "organization_name": "Amazon Watch (Global Impact Test)",
-        "trees_planted": 150000,
-        "area_ha": 1500
-      },
-      "geometry": {
-        "type": "Polygon",
-        "coordinates": [
-          [
-            [-60.000, -3.000],
-            [-59.500, -3.000],
-            [-59.500, -3.500],
-            [-60.000, -3.500],
-            [-60.000, -3.000]
-          ]
-        ]
-      }
-    }
-  ]
-};
-
-const UNIQUE_ORGS = Array.from(new Set(mockCoverageData.features.map(f => f.properties.organization_name)));
+const UNIQUE_ORGS = Array.from(new Set(IMPACT_GEOJSON.features.map(f => f.properties.organization_name)));
 
 export const ImpactMap: React.FC<{ onBack: () => void }> = ({ onBack }) => {
   const mapContainer = useRef<HTMLDivElement>(null);
@@ -82,7 +14,7 @@ export const ImpactMap: React.FC<{ onBack: () => void }> = ({ onBack }) => {
   const [selectedOrg, setSelectedOrg] = useState<string | null>(null);
   const [currentYear, setCurrentYear] = useState(2026);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [zoomLevel, setZoomLevel] = useState(1.5);
+  const [zoomLevel, setZoomLevel] = useState(10);
   const [isMapLoaded, setIsMapLoaded] = useState(false);
 
   const updateMapFilters = (orgName: string | null) => {
@@ -112,8 +44,8 @@ export const ImpactMap: React.FC<{ onBack: () => void }> = ({ onBack }) => {
     map.current = new maplibregl.Map({
       container: mapContainer.current,
       style: 'https://basemaps.cartocdn.com/gl/dark-matter-nolabels-gl-style/style.json',
-      center: [20, 10],
-      zoom: 1.5,
+      center: [123.1, 10.6], // Negros Island center
+      zoom: 10,
       attributionControl: false
     });
     map.current.addControl(new maplibregl.AttributionControl({ compact: true }));
@@ -133,7 +65,7 @@ export const ImpactMap: React.FC<{ onBack: () => void }> = ({ onBack }) => {
       // Add Sources
       map.current.addSource('impact-data', {
         type: 'geojson',
-        data: mockCoverageData as any
+        data: IMPACT_GEOJSON as any
       });
 
       // Add Heatmap Layer
@@ -142,20 +74,20 @@ export const ImpactMap: React.FC<{ onBack: () => void }> = ({ onBack }) => {
         type: 'heatmap',
         source: 'impact-data',
         paint: {
-          'heatmap-weight': ['interpolate', ['linear'], ['get', 'area_ha'], 1, 0, 1000, 1],
-          'heatmap-intensity': ['interpolate', ['linear'], ['zoom'], 0, 0.1, 9, 1.5],
+          'heatmap-weight': ['interpolate', ['linear'], ['get', 'area_ha'], 1, 0, 100, 1],
+          'heatmap-intensity': ['interpolate', ['linear'], ['zoom'], 8, 1, 15, 3],
           'heatmap-color': [
             'interpolate',
             ['linear'],
             ['heatmap-density'],
-            0, 'rgba(32, 214, 155, 0)',      // Transparent base
-            0.2, 'rgba(15, 23, 42, 0.5)',    // Deep Navy blend
-            0.5, 'rgba(13, 148, 136, 0.8)',  // Dark Teal transition
-            0.8, 'rgba(32, 214, 155, 0.9)',  // Mint Green main mass
-            1, 'rgba(167, 253, 235, 1)'      // White/Mint hot center
+            0, 'rgba(32, 214, 155, 0)',      
+            0.2, 'rgba(15, 23, 42, 0.5)',    
+            0.5, 'rgba(13, 148, 136, 0.8)',  
+            0.8, 'rgba(32, 214, 155, 0.9)',  
+            1, 'rgba(167, 253, 235, 1)'      
           ],
-          'heatmap-radius': ['interpolate', ['linear'], ['zoom'], 0, 2, 9, 20],
-          'heatmap-opacity': ['interpolate', ['linear'], ['zoom'], 7, 0.8, 11, 0] // Fades out as we zoom in
+          'heatmap-radius': ['interpolate', ['linear'], ['zoom'], 8, 10, 15, 40],
+          'heatmap-opacity': 0.6
         }
       } as any);
 
@@ -166,7 +98,7 @@ export const ImpactMap: React.FC<{ onBack: () => void }> = ({ onBack }) => {
         source: 'impact-data',
         paint: {
           'fill-color': '#20d69b',
-          'fill-opacity': 0.2
+          'fill-opacity': 0.3
         }
       });
 
@@ -259,12 +191,12 @@ export const ImpactMap: React.FC<{ onBack: () => void }> = ({ onBack }) => {
 
   const zoomToOrg = (orgName: string) => {
     if (!map.current || !isMapLoaded) return;
-    const feature = mockCoverageData.features.find(f => f.properties.organization_name === orgName);
+    const feature = IMPACT_GEOJSON.features.find(f => f.properties.organization_name === orgName);
     if (feature) {
       const coords = feature.geometry.coordinates[0][0];
       map.current.flyTo({
         center: [coords[0], coords[1]],
-        zoom: 9,
+        zoom: 11,
         essential: true,
         duration: 3000
       });
@@ -277,7 +209,7 @@ export const ImpactMap: React.FC<{ onBack: () => void }> = ({ onBack }) => {
 
   const selectedFeatureProps = useMemo(() => {
     if (!selectedOrg) return null;
-    const feature = mockCoverageData.features.find(f => f.properties.organization_name === selectedOrg);
+    const feature = IMPACT_GEOJSON.features.find(f => f.properties.organization_name === selectedOrg);
     return feature?.properties;
   }, [selectedOrg]);
 
@@ -287,7 +219,7 @@ export const ImpactMap: React.FC<{ onBack: () => void }> = ({ onBack }) => {
       <div className="absolute inset-0 z-0 w-[100vw] h-[100vh] bg-[#0b1120]">
         <div 
           ref={mapContainer} 
-          className="absolute inset-0 w-full h-full opacity-80 mix-blend-luminosity" 
+          className="absolute inset-0 w-full h-full opacity-80 mix-blend-screen" 
         />
         {/* Fading Effect */}
         <div className="absolute bottom-0 left-0 right-0 h-48 md:h-64 bg-gradient-to-t from-[#0b1120] via-[#0b1120]/80 to-transparent pointer-events-none z-10" />
@@ -310,7 +242,7 @@ export const ImpactMap: React.FC<{ onBack: () => void }> = ({ onBack }) => {
               <span className="w-1.5 h-1.5 rounded-full bg-[#20d69b] animate-pulse"></span>
               Live Impact Satellite (OSS)
             </div>
-            <h2 className="text-2xl md:text-5xl font-serif tracking-tight text-white drop-shadow-[0_2px_10px_rgba(0,0,0,0.5)]">Global Restoration</h2>
+            <h2 className="text-2xl md:text-5xl font-serif tracking-tight text-white drop-shadow-[0_2px_10px_rgba(0,0,0,0.5)]">Local Impact</h2>
           </div>
         </div>
 
@@ -320,7 +252,7 @@ export const ImpactMap: React.FC<{ onBack: () => void }> = ({ onBack }) => {
             <div className="flex items-center justify-between text-[9px] font-black uppercase tracking-[0.2em] text-[#20d69b]/70">
               <div className="flex items-center gap-2">
                 <Filter size={12} />
-                Organizations
+                Forest Hubs
               </div>
               {selectedOrg && (
                 <button 
@@ -397,7 +329,7 @@ export const ImpactMap: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                <div className="flex items-center gap-2 text-[9px] font-black uppercase tracking-widest text-[#20d69b] mb-1">
                  <MapPin size={12} /> Selected Scope
                </div>
-               <h3 className="text-2xl font-serif text-white tracking-tight leading-tight">{selectedFeatureProps.organization_name}</h3>
+               <h3 className="text-lg font-serif text-white tracking-tight leading-tight">{selectedFeatureProps.organization_name}</h3>
              </div>
           </div>
           

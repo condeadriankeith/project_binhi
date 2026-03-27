@@ -6,6 +6,15 @@ export enum ItemType {
   WILLOW = 'WILLOW'
 }
 
+export type UserRole = 'individual' | 'organization';
+
+export interface User {
+  name: string;
+  email: string;
+  role: UserRole;
+  orgId?: string;
+}
+
 export interface TreeType {
   id: ItemType;
   name: string;
@@ -38,6 +47,8 @@ export interface Organization {
   tiles: TileData[];
   totalTrees: number;
   totalCo2: number;
+  donations: number;
+  lastUpdate?: string;
 }
 
 export interface GameState {

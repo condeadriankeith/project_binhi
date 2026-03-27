@@ -5,11 +5,11 @@ export const GRID_SIZE = 5;
 export const INITIAL_BALANCE = 50.00; // Increased starting balance for better trial
 
 export const TREE_SPECIES: TreeType[] = [
-  { id: ItemType.HORNBEAM, name: 'Hornbeam', price: 4.50, co2Factor: 2.3, unlockLevel: 1, icon: '🌲' },
-  { id: ItemType.CEDAR, name: 'Cedar', price: 6.00, co2Factor: 3.1, unlockLevel: 1, icon: '🌲' },
-  { id: ItemType.MAPLE, name: 'Maple', price: 8.50, co2Factor: 4.5, unlockLevel: 2, icon: '🌳' },
-  { id: ItemType.SPRUCE, name: 'Spruce', price: 10.00, co2Factor: 5.2, unlockLevel: 2, icon: '🌲' },
-  { id: ItemType.WILLOW, name: 'Willow', price: 15.00, co2Factor: 6.8, unlockLevel: 3, icon: '🌿' }
+  { id: ItemType.HORNBEAM, name: 'Narra', price: 4.50, co2Factor: 2.3, unlockLevel: 1, icon: '🌳' },
+  { id: ItemType.CEDAR, name: 'Molave', price: 6.00, co2Factor: 3.1, unlockLevel: 1, icon: '🌳' },
+  { id: ItemType.MAPLE, name: 'Yakal', price: 8.50, co2Factor: 4.5, unlockLevel: 2, icon: '🌲' },
+  { id: ItemType.SPRUCE, name: 'Banuyo', price: 10.00, co2Factor: 5.2, unlockLevel: 2, icon: '🌳' },
+  { id: ItemType.WILLOW, name: 'Malugai', price: 15.00, co2Factor: 6.8, unlockLevel: 3, icon: '🌿' }
 ];
 
 const generateTiles = (): TileData[] => {
@@ -34,40 +34,30 @@ const generateTiles = (): TileData[] => {
 
 export const ORGANIZATIONS: Organization[] = [
   {
-    id: 'eden',
-    name: 'Eden Projects',
-    mission: 'Reforesting Madagascar coastlines.',
-    location: 'Madagascar',
-    islandColor: '#9CCC65', // Bright Grass Green
+    id: 'bakuran',
+    name: 'BCC Advocates for Kalikasan (BAKURAN)',
+    mission: 'Empowering communities through sustainable restoration.',
+    location: 'Negros Occidental, PH',
+    islandColor: '#43A047', // Deep Green
     waterColor: '#81D4FA', // Soft Blue
     accentColor: '#1DE9B6',
     tiles: generateTiles(),
     totalTrees: 1420,
-    totalCo2: 3200
+    totalCo2: 3200,
+    donations: 125000
   },
   {
-    id: 'tree-nation',
-    name: 'Tree-Nation',
-    mission: 'Restoring the Amazonian heartland.',
-    location: 'Brazil',
-    islandColor: '#C0CA33', // Limey Green
-    waterColor: '#4FC3F7', // Deep Sky Blue
+    id: 'earthguards',
+    name: 'EarthGuards USLS',
+    mission: 'Student-led initiatives for a greener future.',
+    location: 'Bacolod City, PH',
+    islandColor: '#9CCC65', // Light Green
+    waterColor: '#4FC3F7', // Sky Blue
     accentColor: '#FFD740',
     tiles: generateTiles(),
-    totalTrees: 2150,
-    totalCo2: 4800
-  },
-  {
-    id: 'greenbelt',
-    name: 'Green Belt',
-    mission: 'Empowering communities in Kenya.',
-    location: 'Kenya',
-    islandColor: '#8BC34A', // Classic Green
-    waterColor: '#B3E5FC', // Very Light Blue
-    accentColor: '#FFAB91',
-    tiles: generateTiles(),
-    totalTrees: 980,
-    totalCo2: 1200
+    totalTrees: 850,
+    totalCo2: 1800,
+    donations: 45000
   }
 ];
 
