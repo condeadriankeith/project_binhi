@@ -28,23 +28,15 @@ export const HUD: React.FC<Props> = ({
     <div className="fixed inset-0 pointer-events-none p-4 md:p-8 z-20 flex flex-col justify-between">
       
       {/* Top Navigation Bar */}
-      <div className="flex justify-between items-start pointer-events-auto animate-in fade-in slide-in-from-top-8 duration-1000">
+      <div className="flex justify-between items-start pointer-events-none animate-in fade-in slide-in-from-top-8 duration-1000">
         
         {/* Left: User & AI */}
-        <div className="flex flex-col gap-2 md:gap-3">
-          <button 
-            onClick={onAssistantClick}
-            className="bg-emerald-950/60 backdrop-blur-xl border border-emerald-800/50 shadow-lg p-2 md:p-4 rounded-xl md:rounded-2xl hover:bg-emerald-900 transition-all active:scale-95 relative group pointer-events-auto"
-          >
-            <Sparkles size={20} className="text-emerald-400 group-hover:animate-pulse" />
-            <div className="absolute left-full ml-4 top-1/2 -translate-y-1/2 opacity-0 md:group-hover:opacity-100 transition-opacity whitespace-nowrap bg-emerald-950 text-white text-[10px] px-3 py-1.5 rounded-lg font-bold uppercase tracking-widest pointer-events-none hidden md:block">
-              AI Insight
-            </div>
-          </button>
+        <div className="flex flex-col gap-2 md:gap-3 pointer-events-auto">
+          {/* Removed AI Insight button to prevent overlap with Profile button */}
         </div>
 
         {/* Center: Title & Level */}
-        <div className="flex flex-col items-center bg-slate-900/60 backdrop-blur-2xl border border-slate-700/50 shadow-xl px-4 md:px-10 py-2 md:py-4 rounded-2xl md:rounded-3xl max-w-[180px] md:max-w-none">
+        <div className="flex flex-col items-center bg-slate-900/60 backdrop-blur-2xl border border-slate-700/50 shadow-xl px-4 md:px-10 py-2 md:py-4 rounded-2xl md:rounded-3xl max-w-[180px] md:max-w-none pointer-events-auto">
            <div className="flex items-center gap-1.5 md:gap-2 text-[8px] md:text-[10px] font-bold text-emerald-400 uppercase tracking-[0.2em] mb-0.5 md:mb-1">
               <Leaf size={12} className="text-emerald-500" />
               <span>Level {level}</span>
@@ -53,10 +45,10 @@ export const HUD: React.FC<Props> = ({
         </div>
 
         {/* Right: Community */}
-        <div className="flex flex-col gap-3">
+        <div className="flex flex-col gap-3 pointer-events-auto">
           <button 
             onClick={onCommunityClick}
-            className="bg-slate-900/60 backdrop-blur-xl border border-slate-700/50 shadow-lg p-2 md:p-4 rounded-xl md:rounded-2xl hover:bg-slate-800 transition-all active:scale-95 group pointer-events-auto"
+            className="bg-slate-900/60 backdrop-blur-xl border border-slate-700/50 shadow-lg p-2 md:p-4 rounded-xl md:rounded-2xl hover:bg-slate-800 transition-all active:scale-95 group"
           >
             <Globe size={20} className="text-slate-300 group-hover:text-emerald-400 transition-colors" />
           </button>

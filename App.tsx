@@ -41,7 +41,10 @@ const App: React.FC = () => {
     const channel = new BroadcastChannel('binhi_sync');
     channel.onmessage = (event) => {
       if (event.data.type === 'SYNC_ORGS') {
-        setOrgs(event.data.payload);
+        setOrgs(prev => {
+          if (JSON.stringify(prev) === JSON.stringify(event.data.payload)) return prev;
+          return event.data.payload;
+        });
       }
     };
     return () => channel.close();
@@ -71,14 +74,16 @@ const App: React.FC = () => {
   }, [user, currentView]);
 
   useEffect(() => {
-    if (user?.role === 'organization') {
-      setCurrentView('dashboard');
-      const idx = orgs.findIndex(o => o.id === user.orgId);
-      if (idx !== -1) setActiveOrgIndex(idx);
-    } else {
-      setCurrentView('island');
+    if (user) {
+      if (user.role === 'organization') {
+        setCurrentView('dashboard');
+        const idx = orgs.findIndex(o => o.id === user.orgId);
+        if (idx !== -1) setActiveOrgIndex(idx);
+      } else {
+        setCurrentView('island');
+      }
     }
-  }, [user, orgs]);
+  }, [user]);
 
   const activeOrg = orgs[activeOrgIndex];
 
@@ -211,18 +216,33 @@ const App: React.FC = () => {
 
           {/* Secondary Actions: Impact & Logout */}
           <div className="fixed top-24 md:top-32 right-4 md:right-8 z-30 flex flex-col items-end gap-3 pointer-events-none animate-in fade-in slide-in-from-right-8 duration-1000 delay-700 fill-mode-both">
-            <button 
-              onClick={() => setCurrentView('map')}
-              className={`pointer-events-auto backdrop-blur-xl p-3 md:p-5 rounded-2xl md:rounded-3xl shadow-[0_20px_40px_rgba(0,0,0,0.2)] transition-all flex items-center gap-3 group border ${isDarkMode ? 'bg-slate-900/90 border-slate-700/50 hover:bg-slate-800' : 'bg-white/90 border-slate-200 hover:bg-slate-50'}`}
-            >
-              <div className="bg-emerald-500/20 p-2 rounded-xl group-hover:scale-110 transition-transform">
-                <MapIcon size={20} className="text-emerald-400" />
-              </div>
-              <div className="hidden md:flex flex-col items-start text-left">
-                <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-emerald-400/70">Restoration</span>
-                <span className={`text-sm font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>Local Impact</span>
-              </div>
-            </button>
+            {user.role === 'organization' ? (
+              <button 
+                onClick={() => setCurrentView('dashboard')}
+                className={`pointer-events-auto backdrop-blur-xl p-3 md:p-5 rounded-2xl md:rounded-3xl shadow-[0_20px_40px_rgba(0,0,0,0.2)] transition-all flex items-center gap-3 group border ${isDarkMode ? 'bg-slate-900/90 border-slate-700/50 hover:bg-slate-800' : 'bg-white/90 border-slate-200 hover:bg-slate-50'}`}
+              >
+                <div className="bg-emerald-500/20 p-2 rounded-xl group-hover:scale-110 transition-transform">
+                  <Activity size={20} className="text-emerald-400" />
+                </div>
+                <div className="hidden md:flex flex-col items-start text-left">
+                  <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-emerald-400/70">Return To</span>
+                  <span className={`text-sm font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>Dashboard</span>
+                </div>
+              </button>
+            ) : (
+              <button 
+                onClick={() => setCurrentView('map')}
+                className={`pointer-events-auto backdrop-blur-xl p-3 md:p-5 rounded-2xl md:rounded-3xl shadow-[0_20px_40px_rgba(0,0,0,0.2)] transition-all flex items-center gap-3 group border ${isDarkMode ? 'bg-slate-900/90 border-slate-700/50 hover:bg-slate-800' : 'bg-white/90 border-slate-200 hover:bg-slate-50'}`}
+              >
+                <div className="bg-emerald-500/20 p-2 rounded-xl group-hover:scale-110 transition-transform">
+                  <MapIcon size={20} className="text-emerald-400" />
+                </div>
+                <div className="hidden md:flex flex-col items-start text-left">
+                  <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-emerald-400/70">Restoration</span>
+                  <span className={`text-sm font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>Local Impact</span>
+                </div>
+              </button>
+            )}
 
             <button 
               onClick={() => setUser(null)}

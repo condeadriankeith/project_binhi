@@ -18,22 +18,21 @@ import { TileData, ItemType } from '../types';
 
 const LowPolyTree = ({ type, rotation = 0, targetScale = 1 }: { type: ItemType; rotation?: number; targetScale?: number }) => {
   const meshRef = useRef<THREE.Group>(null);
-  const [currentScale, setCurrentScale] = useState(0);
+  const currentScale = useRef(0);
   const velocity = useRef(0);
   
   useFrame((state, delta) => {
+    const safeDelta = Math.min(delta, 0.1);
     // Spring-like pop-in animation with overshoot
-    if (Math.abs(currentScale - targetScale) > 0.001 || Math.abs(velocity.current) > 0.001) {
-      setCurrentScale(prev => {
-        const tension = 150;
-        const friction = 12;
-        const force = tension * (targetScale - prev) - friction * velocity.current;
-        velocity.current += force * delta;
-        return prev + velocity.current * delta;
-      });
+    if (Math.abs(currentScale.current - targetScale) > 0.001 || Math.abs(velocity.current) > 0.001) {
+      const tension = 150;
+      const friction = 12;
+      const force = tension * (targetScale - currentScale.current) - friction * velocity.current;
+      velocity.current += force * safeDelta;
+      currentScale.current += velocity.current * safeDelta;
     }
     if (meshRef.current) {
-      meshRef.current.scale.set(currentScale, currentScale, currentScale);
+      meshRef.current.scale.set(currentScale.current, currentScale.current, currentScale.current);
       
       // Subtle wind sway
       const time = state.clock.getElapsedTime();
@@ -110,7 +109,8 @@ const Tile: React.FC<{ data: TileData; onClick: (id: number) => void; islandColo
       hasBush: random(data.id) > 0.6, 
       hasRock: random(data.id + 100) > 0.8, 
       bushSize: 0.15 + random(data.id) * 0.15,
-      rockScale: 0.05 + random(data.id + 200) * 0.1
+      rockScale: 0.05 + random(data.id + 200) * 0.1,
+      rockRot: [random(data.id + 300) * Math.PI * 2, random(data.id + 400) * Math.PI * 2, 0] as [number, number, number]
     };
   }, [data.id]);
 
@@ -151,7 +151,7 @@ const Tile: React.FC<{ data: TileData; onClick: (id: number) => void; islandColo
         </mesh>
       )}
       {!data.plantType && decor.hasRock && (
-        <mesh position={[-0.3, 0.42, 0.2]} rotation={[Math.random(), Math.random(), 0]} scale={decor.rockScale} castShadow>
+        <mesh position={[-0.3, 0.42, 0.2]} rotation={decor.rockRot} scale={decor.rockScale} castShadow>
           <icosahedronGeometry args={[1, 0]} />
           <meshStandardMaterial color="#9E9E9E" flatShading roughness={0.7} />
         </mesh>
@@ -228,43 +228,59 @@ const DynamicIsland = ({
           </RoundedBox>
         </group>
 
-        {/* Magical Water/Energy Ring */}
-        <Float speed={2} rotationIntensity={0.2} floatIntensity={0.5} position={[0, -2.2, 0]}>
-          <mesh rotation={[-Math.PI / 2, 0, 0]}>
-            <torusGeometry args={[4.5, 0.4, 16, 64]} />
-            <meshPhysicalMaterial 
-              color={waterColor} 
-              transmission={0.95} 
-              opacity={1} 
-              metalness={0.1} 
-              roughness={0.1} 
-              ior={1.33} 
-              thickness={3}
-              clearcoat={1}
-              clearcoatRoughness={0.1}
-            />
-          </mesh>
-          <Sparkles count={120} scale={12} size={4} speed={0.6} color={accentColor} opacity={0.8} />
-        </Float>
     </group>
   );
 };
 
-const WebGLCleanup = () => {
-  const { gl } = useThree();
-  useEffect(() => {
-    return () => {
-      // Forcefully dispose of the renderer and its context
-      console.log("Three.js: Attempting WebGL Context Release...");
-      const extension = gl.getContext().getExtension('WEBGL_lose_context');
-      if (extension) {
-        extension.loseContext();
-        console.log("Three.js: WebGL Context Forcefully Released via extension");
+
+
+const LowPolyCloud = ({ 
+  startPos, 
+  scale = 1, 
+  opacity = 0.5,
+  speed = 1
+}: { 
+  startPos: [number, number, number], 
+  scale?: number, 
+  opacity?: number,
+  speed?: number
+}) => {
+  const groupRef = useRef<THREE.Group>(null);
+  
+  useFrame((state, delta) => {
+    if (groupRef.current) {
+      // Gentle drift across the sky
+      groupRef.current.position.x += 0.5 * delta * speed;
+      // Gentle bob
+      groupRef.current.position.y = startPos[1] + Math.sin(state.clock.getElapsedTime() * 0.5 + startPos[0]) * 0.5;
+      
+      // Wrap around
+      if (groupRef.current.position.x > 30) {
+        groupRef.current.position.x = -30;
       }
-      gl.dispose();
-    };
-  }, [gl]);
-  return null;
+    }
+  });
+
+  return (
+    <group ref={groupRef} position={startPos} scale={scale}>
+      <mesh castShadow receiveShadow position={[0, 0, 0]}>
+         <dodecahedronGeometry args={[1.5, 0]} />
+         <meshStandardMaterial color="#ffffff" transparent opacity={opacity} roughness={1} flatShading />
+      </mesh>
+      <mesh castShadow receiveShadow position={[1.2, -0.2, 0.4]} scale={0.8}>
+         <dodecahedronGeometry args={[1.2, 0]} />
+         <meshStandardMaterial color="#ffffff" transparent opacity={opacity} roughness={1} flatShading />
+      </mesh>
+      <mesh castShadow receiveShadow position={[-1.3, -0.3, -0.2]} scale={0.7}>
+         <dodecahedronGeometry args={[1.4, 0]} />
+         <meshStandardMaterial color="#ffffff" transparent opacity={opacity} roughness={1} flatShading />
+      </mesh>
+      <mesh castShadow receiveShadow position={[0.4, 0.6, -0.5]} scale={0.6}>
+         <dodecahedronGeometry args={[1, 0]} />
+         <meshStandardMaterial color="#ffffff" transparent opacity={opacity} roughness={1} flatShading />
+      </mesh>
+    </group>
+  );
 };
 
 export const IslandScene: React.FC<{ 
@@ -287,7 +303,6 @@ export const IslandScene: React.FC<{
           preserveDrawingBuffer: true 
         }}
       >
-        <WebGLCleanup />
         <PerspectiveCamera makeDefault position={[14, 16, 14]} fov={35} />
         
         {isDarkMode && <Stars radius={100} depth={50} count={5000} factor={4} saturation={0} fade speed={1} />}
@@ -332,14 +347,11 @@ export const IslandScene: React.FC<{
           orgIndex={orgIndex}
         />
         
-        {/* Atmospheric Clouds */}
-        <Float speed={1} rotationIntensity={0.1} floatIntensity={0.2}>
-          <Cloud position={[-10, 5, -15]} opacity={0.5} speed={0.2} width={10} depth={1.5} segments={20} color="#ffffff" />
-          <Cloud position={[15, 8, -10]} opacity={0.4} speed={0.3} width={8} depth={2} segments={15} color="#ffffff" />
-          <Cloud position={[-5, -5, 15]} opacity={0.3} speed={0.1} width={12} depth={1} segments={10} color="#ffffff" />
-        </Float>
+        {/* Atmospheric Clouds (Low Poly) */}
+        <LowPolyCloud startPos={[-10, 5, -15]} opacity={0.5} scale={2} speed={1.2} />
+        <LowPolyCloud startPos={[15, 8, -10]} opacity={0.4} scale={1.5} speed={0.8} />
+        <LowPolyCloud startPos={[-5, -5, 15]} opacity={0.3} scale={2.5} speed={0.5} />
 
-        <ContactShadows position={[0, -4.5, 0]} opacity={0.4} scale={30} blur={2.5} far={15} color="#1A237E" />
       </Canvas>
     </div>
   );
