@@ -62,7 +62,7 @@ export const TreeVault: React.FC<Props> = ({
                   
                   <div className="text-3xl mb-2">{isLocked ? <Lock size={20} className="text-slate-600" /> : tree.icon}</div>
                   <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter mb-1">{tree.name}</span>
-                  <span className="text-xs font-bold text-emerald-400">${tree.price.toFixed(2)}</span>
+                  <span className="text-xs font-bold text-emerald-400">₱{tree.price.toLocaleString()}</span>
                 </button>
               );
             })}

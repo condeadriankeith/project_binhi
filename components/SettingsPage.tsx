@@ -9,13 +9,13 @@ interface Props {
 
 export const SettingsPage: React.FC<Props> = ({ onClose, isDarkMode, onToggleTheme }) => {
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-[#0B1120]/90 backdrop-blur-xl animate-in fade-in duration-300">
-      <div className="w-full max-w-lg bg-slate-900/80 border border-slate-700/50 rounded-[40px] shadow-[0_40px_80px_rgba(0,0,0,0.6)] overflow-hidden relative">
+    <div className={`fixed inset-0 z-[100] flex items-center justify-center backdrop-blur-xl animate-in fade-in duration-300 ${isDarkMode ? 'bg-[#0B1120]/90' : 'bg-slate-200/90'}`}>
+      <div className={`w-full max-w-lg border rounded-[40px] shadow-[0_40px_80px_rgba(0,0,0,0.6)] overflow-hidden relative ${isDarkMode ? 'bg-slate-900/80 border-slate-700/50' : 'bg-white/90 border-slate-200'}`}>
         
         {/* Close Button */}
         <button 
           onClick={onClose}
-          className="absolute top-6 right-6 p-3 hover:bg-white/10 rounded-2xl text-slate-400 hover:text-white transition-all z-20"
+          className={`absolute top-6 right-6 p-3 rounded-2xl transition-all z-20 ${isDarkMode ? 'hover:bg-white/10 text-slate-400 hover:text-white' : 'hover:bg-slate-900/10 text-slate-500 hover:text-slate-900'}`}
         >
           <X size={20} />
         </button>
@@ -26,21 +26,21 @@ export const SettingsPage: React.FC<Props> = ({ onClose, isDarkMode, onToggleThe
                <Shield size={24} className="text-emerald-400" />
             </div>
             <div>
-              <h2 className="text-2xl font-serif text-white tracking-tight">System Settings</h2>
-              <p className="text-[10px] font-bold text-emerald-400 uppercase tracking-widest mt-1">Interface Configuration</p>
+              <h2 className={`text-2xl font-serif tracking-tight ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>System Settings</h2>
+              <p className={`text-[10px] font-bold uppercase tracking-widest mt-1 ${isDarkMode ? 'text-emerald-400' : 'text-emerald-600'}`}>Interface Configuration</p>
             </div>
           </div>
 
           <div className="space-y-8">
             {/* Theme Toggle */}
-            <div className="flex items-center justify-between p-6 bg-slate-800/40 rounded-3xl border border-slate-700/50 hover:bg-slate-800/60 transition-all">
+            <div className={`flex items-center justify-between p-6 rounded-3xl border transition-all ${isDarkMode ? 'bg-slate-800/40 border-slate-700/50 hover:bg-slate-800/60' : 'bg-slate-50 border-slate-200 hover:bg-slate-100'}`}>
               <div className="flex gap-4 items-center">
-                <div className="w-10 h-10 rounded-xl bg-slate-800 flex items-center justify-center text-amber-400">
+                <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-amber-400 ${isDarkMode ? 'bg-slate-800' : 'bg-white shadow-sm'}`}>
                   {isDarkMode ? <Moon size={20} /> : <Sun size={20} />}
                 </div>
                 <div>
-                  <h4 className="text-[11px] font-bold text-white uppercase tracking-widest">Interface Theme</h4>
-                  <p className="text-[10px] text-slate-500 font-medium">Toggle between Light/Dark mode</p>
+                  <h4 className={`text-[11px] font-bold uppercase tracking-widest ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>Interface Theme</h4>
+                  <p className={`text-[10px] font-medium ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}>Toggle between Light/Dark mode</p>
                 </div>
               </div>
               <button 
@@ -52,13 +52,12 @@ export const SettingsPage: React.FC<Props> = ({ onClose, isDarkMode, onToggleThe
             </div>
 
             {/* Other Mock Settings */}
-            <SettingItem icon={<Globe size={18} />} label="Haptic Feedback" defaultOn />
-            <SettingItem icon={<Bell size={18} />} label="Protocol Notifications" defaultOn />
-            <SettingItem icon={<RefreshCw size={18} />} label="Auto-Sync Telemetry" defaultOn={false} />
+            <SettingItem icon={<Globe size={18} />} label="Haptic Feedback" defaultOn isDarkMode={isDarkMode} />
+            <SettingItem icon={<Bell size={18} />} label="Protocol Notifications" defaultOn isDarkMode={isDarkMode} />
           </div>
 
           <div className="mt-12 text-center">
-            <p className="text-[9px] font-bold text-slate-600 uppercase tracking-[0.3em]">Binhi System v0.4.2-α</p>
+            <p className={`text-[9px] font-bold uppercase tracking-[0.3em] ${isDarkMode ? 'text-slate-600' : 'text-slate-400'}`}>Binhi System v0.4.2-α</p>
           </div>
           
           <button 
@@ -73,11 +72,11 @@ export const SettingsPage: React.FC<Props> = ({ onClose, isDarkMode, onToggleThe
   );
 };
 
-const SettingItem = ({ icon, label, defaultOn }: { icon: React.ReactNode, label: string, defaultOn: boolean }) => {
+const SettingItem = ({ icon, label, defaultOn, isDarkMode }: { icon: React.ReactNode, label: string, defaultOn: boolean, isDarkMode: boolean }) => {
   const [isOn, setIsOn] = React.useState(defaultOn);
   return (
     <div className="flex items-center justify-between px-2">
-      <div className="flex gap-4 items-center text-slate-400">
+      <div className={`flex gap-4 items-center ${isDarkMode ? 'text-slate-400' : 'text-slate-600'}`}>
         <div className="w-10 h-10 flex items-center justify-center">
           {icon}
         </div>
@@ -85,7 +84,7 @@ const SettingItem = ({ icon, label, defaultOn }: { icon: React.ReactNode, label:
       </div>
       <button 
         onClick={() => setIsOn(!isOn)}
-        className={`w-10 h-6 rounded-full transition-all relative ${isOn ? 'bg-emerald-600/50' : 'bg-slate-800'}`}
+        className={`w-10 h-6 rounded-full transition-all relative ${isOn ? 'bg-emerald-600/50' : isDarkMode ? 'bg-slate-800' : 'bg-slate-200'}`}
       >
         <div className={`absolute top-1 w-4 h-4 rounded-full bg-slate-400 shadow-md transition-all ${isOn ? 'left-5 bg-white' : 'left-1'}`} />
       </button>

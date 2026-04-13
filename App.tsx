@@ -23,8 +23,15 @@ const App: React.FC = () => {
   const [isHubCollapsed, setIsHubCollapsed] = useState(true);
   const [showProfile, setShowProfile] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
-  const [isDarkMode, setIsDarkMode] = useState(true);
+  const [isDarkMode, setIsDarkMode] = useState<boolean>(() => {
+    const saved = localStorage.getItem('binhi_theme');
+    return saved ? JSON.parse(saved) : false;
+  });
   const [isSceneReady, setIsSceneReady] = useState(false);
+
+  useEffect(() => {
+    localStorage.setItem('binhi_theme', JSON.stringify(isDarkMode));
+  }, [isDarkMode]);
   
   const [gameState, setGameState] = useState<GameState>({
     balance: INITIAL_BALANCE,
@@ -102,9 +109,21 @@ const App: React.FC = () => {
       if (tiles[idx].plantType) return prev;
 
       tiles[idx] = { ...tiles[idx], plantType: selectedTree, isPlanted: true };
+      
+      const newDonation = {
+        id: Math.random().toString(36).substring(7),
+        userName: user?.name || 'Individual Architect',
+        treeType: selectedTree,
+        treeName: treeDef.name,
+        amount: treeDef.price,
+        timestamp: new Date().toISOString()
+      };
+
       org.tiles = tiles;
       org.totalTrees += 1;
       org.totalCo2 += treeDef.co2Factor;
+      org.donations += treeDef.price;
+      org.recentDonations = [newDonation, ...(org.recentDonations || [])].slice(0, 20);
       
       newOrgs[activeOrgIndex] = org;
       return newOrgs;
@@ -116,7 +135,7 @@ const App: React.FC = () => {
     }));
 
     setSelectedTree(null);
-  }, [selectedTree, activeOrgIndex, gameState.balance]);
+  }, [selectedTree, activeOrgIndex, gameState.balance, user]);
 
   const activeTreeData = useMemo(() => TREE_SPECIES.find(t => t.id === selectedTree), [selectedTree]);
 
@@ -124,7 +143,7 @@ const App: React.FC = () => {
   const prevOrg = () => setActiveOrgIndex((prev) => (prev - 1 + orgs.length) % orgs.length);
 
   if (!user) {
-    return <Login onLogin={setUser} />;
+    return <Login onLogin={setUser} isDarkMode={isDarkMode} />;
   }
 
   return (
@@ -135,6 +154,7 @@ const App: React.FC = () => {
           org={activeOrg} 
           onManageIslands={() => setCurrentView('island')}
           onPostUpdate={() => alert('Update portal opening soon...')}
+          isDarkMode={isDarkMode}
         />
       ) : currentView === 'island' ? (
         <>
@@ -157,6 +177,8 @@ const App: React.FC = () => {
             totalCo2={activeOrg.totalCo2}
             onCommunityClick={() => setGameState(p => ({ ...p, showCommunity: true }))}
             onAssistantClick={() => setGameState(p => ({ ...p, showAssistant: true }))}
+            onTopUp={() => setGameState(p => ({ ...p, balance: p.balance + 1000 }))}
+            isDarkMode={isDarkMode}
           />
 
           {/* Organization Context Card with Integrated Switcher */}
@@ -212,6 +234,7 @@ const App: React.FC = () => {
             balance={gameState.balance}
             selectedTool={selectedTree}
             onSelect={(type) => setSelectedTree(type === selectedTree ? null : type)}
+            isDarkMode={isDarkMode}
           />
 
           {/* Secondary Actions: Impact & Logout */}
@@ -254,7 +277,7 @@ const App: React.FC = () => {
           </div>
         </>
       ) : (
-        <ImpactMap onBack={() => setCurrentView(user.role === 'organization' ? 'dashboard' : 'island')} />
+        <ImpactMap onBack={() => setCurrentView(user.role === 'organization' ? 'dashboard' : 'island')} isDarkMode={isDarkMode} />
       )}
 
       {/* Top Left Navigation: Profile & Settings */}
@@ -279,7 +302,7 @@ const App: React.FC = () => {
 
       {/* Modals */}
       {showProfile && user && (
-        <ProfilePage user={user} onClose={() => setShowProfile(false)} />
+        <ProfilePage user={user} onClose={() => setShowProfile(false)} isDarkMode={isDarkMode} />
       )}
 
       {showSettings && (
@@ -293,26 +316,28 @@ const App: React.FC = () => {
       <CommunityImpact 
         isVisible={gameState.showCommunity}
         onClose={() => setGameState(p => ({ ...p, showCommunity: false }))}
+        isDarkMode={isDarkMode}
       />
 
       {gameState.showAssistant && (
         <EcoAssistant 
           tiles={activeOrg.tiles}
           onClose={() => setGameState(p => ({ ...p, showAssistant: false }))}
+          isDarkMode={isDarkMode}
         />
       )}
 
       {/* Planting Indicator */}
       {selectedTree && currentView === 'island' && (
-        <div className="fixed top-20 left-1/2 -translate-x-1/2 z-50 flex items-center gap-4 bg-slate-900/95 backdrop-blur-xl text-white px-6 py-3 rounded-2xl shadow-[0_20px_40px_rgba(0,0,0,0.5)] border border-emerald-500/30 animate-in slide-in-from-top-4 fade-in duration-300">
+        <div className={`fixed top-20 left-1/2 -translate-x-1/2 z-50 flex items-center gap-4 backdrop-blur-xl px-6 py-3 rounded-2xl shadow-[0_20px_40px_rgba(0,0,0,0.5)] border animate-in slide-in-from-top-4 fade-in duration-300 ${isDarkMode ? 'bg-slate-900/95 text-white border-emerald-500/30' : 'bg-white/95 text-slate-900 border-emerald-300'}`}>
           <div className="text-2xl animate-bounce">{activeTreeData?.icon}</div>
           <div className="flex flex-col">
-            <span className="text-[9px] uppercase font-black text-emerald-400 tracking-[0.2em]">Planting Protocol</span>
+            <span className={`text-[9px] uppercase font-black tracking-[0.2em] ${isDarkMode ? 'text-emerald-400' : 'text-emerald-600'}`}>Planting Protocol</span>
             <span className="text-sm font-bold">Select a tile on {activeOrg.name}</span>
           </div>
           <button 
             onClick={() => setSelectedTree(null)}
-            className="ml-4 p-2 hover:bg-slate-800 rounded-xl transition-colors"
+            className={`ml-4 p-2 rounded-xl transition-colors ${isDarkMode ? 'hover:bg-slate-800' : 'hover:bg-slate-100 text-slate-500'}`}
           >
             <X size={16} />
           </button>

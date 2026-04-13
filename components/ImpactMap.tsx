@@ -6,7 +6,7 @@ import { IMPACT_GEOJSON } from '../data/impactGeoData';
 
 const UNIQUE_ORGS = Array.from(new Set(IMPACT_GEOJSON.features.map(f => f.properties.organization_name)));
 
-export const ImpactMap: React.FC<{ onBack: () => void }> = ({ onBack }) => {
+export const ImpactMap: React.FC<{ onBack: () => void, isDarkMode?: boolean }> = ({ onBack, isDarkMode = false }) => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<maplibregl.Map | null>(null);
   const popupRef = useRef<maplibregl.Popup | null>(null);
@@ -43,7 +43,7 @@ export const ImpactMap: React.FC<{ onBack: () => void }> = ({ onBack }) => {
 
     map.current = new maplibregl.Map({
       container: mapContainer.current,
-      style: 'https://basemaps.cartocdn.com/gl/dark-matter-nolabels-gl-style/style.json',
+      style: isDarkMode ? 'https://basemaps.cartocdn.com/gl/dark-matter-nolabels-gl-style/style.json' : 'https://basemaps.cartocdn.com/gl/positron-nolabels-gl-style/style.json',
       center: [123.1, 10.6], // Negros Island center
       zoom: 10,
       attributionControl: false
@@ -126,15 +126,15 @@ export const ImpactMap: React.FC<{ onBack: () => void }> = ({ onBack }) => {
         const coordinates = e.lngLat;
         
         const popupHtml = `
-          <div class="bg-[#0b1120]/95 backdrop-blur-md p-4 rounded-2xl border border-[#20d69b]/30 text-white shadow-xl min-w-[200px]">
-            <h4 class="text-sm font-black uppercase tracking-widest text-[#20d69b] mb-2">${orgName || 'Unknown Site'}</h4>
+          <div class="${isDarkMode ? 'bg-[#0b1120]/95 border-[#20d69b]/30 text-white' : 'bg-white/95 border-emerald-200 text-slate-900'} backdrop-blur-md p-4 rounded-2xl border shadow-xl min-w-[200px]">
+            <h4 class="text-sm font-black uppercase tracking-widest ${isDarkMode ? 'text-[#20d69b]' : 'text-emerald-600'} mb-2">${orgName || 'Unknown Site'}</h4>
             <div class="flex justify-between items-center mb-1">
-              <span class="text-xs text-slate-400">Trees Planted</span>
-              <span class="text-sm font-bold text-white">${treesPlanted ? treesPlanted.toLocaleString() : 'N/A'}</span>
+              <span class="text-xs ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}">Trees Planted</span>
+              <span class="text-sm font-bold">${treesPlanted ? treesPlanted.toLocaleString() : 'N/A'}</span>
             </div>
             <div class="flex justify-between items-center">
-              <span class="text-xs text-slate-400">Area Covered</span>
-              <span class="text-sm font-bold text-white">${areaHa ? areaHa.toLocaleString() : 'N/A'} ha</span>
+              <span class="text-xs ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}">Area Covered</span>
+              <span class="text-sm font-bold">${areaHa ? areaHa.toLocaleString() : 'N/A'} ha</span>
             </div>
           </div>
         `;
@@ -214,15 +214,15 @@ export const ImpactMap: React.FC<{ onBack: () => void }> = ({ onBack }) => {
   }, [selectedOrg]);
 
   return (
-    <div className="fixed inset-0 z-50 bg-[#0B1120] flex flex-col text-white animate-in fade-in duration-500 font-sans overflow-hidden">
+    <div className={`fixed inset-0 z-50 flex flex-col animate-in fade-in duration-500 font-sans overflow-hidden ${isDarkMode ? 'bg-[#0B1120] text-white' : 'bg-slate-50 text-slate-900'}`}>
       {/* 1. Full-Screen Background Layout */}
-      <div className="absolute inset-0 z-0 w-[100vw] h-[100vh] bg-[#0b1120]">
+      <div className={`absolute inset-0 z-0 w-[100vw] h-[100vh] ${isDarkMode ? 'bg-[#0b1120]' : 'bg-slate-50'}`}>
         <div 
           ref={mapContainer} 
           className="absolute inset-0 w-full h-full opacity-80 mix-blend-screen" 
         />
         {/* Fading Effect */}
-        <div className="absolute bottom-0 left-0 right-0 h-48 md:h-64 bg-gradient-to-t from-[#0b1120] via-[#0b1120]/80 to-transparent pointer-events-none z-10" />
+        <div className={`absolute bottom-0 left-0 right-0 h-48 md:h-64 pointer-events-none z-10 ${isDarkMode ? 'bg-gradient-to-t from-[#0b1120] via-[#0b1120]/80 to-transparent' : 'bg-gradient-to-t from-slate-50 via-slate-50/80 to-transparent'}`} />
       </div>
       
       {/* Ensure UI sits on top of the map layer */}
@@ -231,25 +231,25 @@ export const ImpactMap: React.FC<{ onBack: () => void }> = ({ onBack }) => {
           <button 
             type="button"
             onClick={onBack}
-            className="ml-16 md:ml-20 pointer-events-auto bg-[#0b1120]/80 backdrop-blur-xl border border-slate-700 p-3 md:p-4 rounded-2xl hover:bg-slate-800 transition-all flex items-center gap-3 shadow-2xl group"
+            className={`ml-16 md:ml-20 pointer-events-auto backdrop-blur-xl border p-3 md:p-4 rounded-2xl transition-all flex items-center gap-3 shadow-2xl group ${isDarkMode ? 'bg-[#0b1120]/80 border-slate-700 hover:bg-slate-800' : 'bg-white/80 border-slate-200 hover:bg-slate-100'}`}
           >
-            <ArrowLeft size={18} className="text-[#20d69b] group-hover:-translate-x-1 transition-transform" />
-            <span className="hidden md:inline text-[10px] font-black uppercase tracking-[0.2em] text-slate-300">Return to Axis</span>
+            <ArrowLeft size={18} className={`group-hover:-translate-x-1 transition-transform ${isDarkMode ? 'text-[#20d69b]' : 'text-emerald-500'}`} />
+            <span className={`hidden md:inline text-[10px] font-black uppercase tracking-[0.2em] ${isDarkMode ? 'text-slate-300' : 'text-slate-500'}`}>Return to Axis</span>
           </button>
 
           <div className="text-right pointer-events-auto flex flex-col items-end">
-            <div className="flex items-center gap-2 text-[10px] font-black text-[#20d69b] uppercase tracking-[0.4em] mb-2 bg-[#0b1120]/50 backdrop-blur-md px-3 py-1 rounded-full border border-[#20d69b]/20">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#20d69b] animate-pulse"></span>
+            <div className={`flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.4em] mb-2 backdrop-blur-md px-3 py-1 rounded-full border ${isDarkMode ? 'text-[#20d69b] bg-[#0b1120]/50 border-[#20d69b]/20' : 'text-emerald-600 bg-white/50 border-emerald-200'}`}>
+              <span className={`w-1.5 h-1.5 rounded-full animate-pulse ${isDarkMode ? 'bg-[#20d69b]' : 'bg-emerald-500'}`}></span>
               Live Impact Satellite (OSS)
             </div>
-            <h2 className="text-2xl md:text-5xl font-serif tracking-tight text-white drop-shadow-[0_2px_10px_rgba(0,0,0,0.5)]">Local Impact</h2>
+            <h2 className={`text-2xl md:text-5xl font-serif tracking-tight drop-shadow-[0_2px_10px_rgba(0,0,0,0.5)] ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>Local Impact</h2>
           </div>
         </div>
 
         {/* Floating Controls Sidebar - z-50 */}
         <div className="absolute left-6 md:left-10 top-32 md:top-40 flex flex-col gap-4 pointer-events-auto max-w-[240px] z-50">
-          <div className="bg-[#0b1120]/80 backdrop-blur-2xl p-5 rounded-3xl border border-slate-700/50 shadow-2xl flex flex-col gap-4">
-            <div className="flex items-center justify-between text-[9px] font-black uppercase tracking-[0.2em] text-[#20d69b]/70">
+          <div className={`backdrop-blur-2xl p-5 rounded-3xl border shadow-2xl flex flex-col gap-4 ${isDarkMode ? 'bg-[#0b1120]/80 border-slate-700/50' : 'bg-white/80 border-slate-200'}`}>
+            <div className={`flex items-center justify-between text-[9px] font-black uppercase tracking-[0.2em] ${isDarkMode ? 'text-[#20d69b]/70' : 'text-emerald-600/70'}`}>
               <div className="flex items-center gap-2">
                 <Filter size={12} />
                 Forest Hubs
@@ -257,7 +257,7 @@ export const ImpactMap: React.FC<{ onBack: () => void }> = ({ onBack }) => {
               {selectedOrg && (
                 <button 
                   onClick={() => setSelectedOrg(null)}
-                  className="text-slate-400 hover:text-white"
+                  className={`hover:text-white ${isDarkMode ? 'text-slate-400' : 'text-slate-500 hover:text-slate-900'}`}
                 >
                   Clear
                 </button>
@@ -269,9 +269,9 @@ export const ImpactMap: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                   key={orgName}
                   type="button"
                   onClick={() => zoomToOrg(orgName as string)}
-                  className={`flex items-center gap-3 px-3 py-2 rounded-xl text-[11px] font-bold transition-all text-left leading-tight ${selectedOrg === orgName ? 'bg-[#20d69b]/20 text-white border border-[#20d69b]/30' : 'text-slate-400 hover:bg-slate-800 hover:text-white'}`}
+                  className={`flex items-center gap-3 px-3 py-2 rounded-xl text-[11px] font-bold transition-all text-left leading-tight ${selectedOrg === orgName ? (isDarkMode ? 'bg-[#20d69b]/20 text-white border border-[#20d69b]/30' : 'bg-emerald-100 text-slate-900 border border-emerald-200') : (isDarkMode ? 'text-slate-400 hover:bg-slate-800 hover:text-white' : 'text-slate-500 hover:bg-slate-100 hover:text-slate-900')}`}
                 >
-                  <MapPin size={14} className={selectedOrg === orgName ? 'text-[#20d69b]' : 'text-slate-500'} />
+                  <MapPin size={14} className={selectedOrg === orgName ? (isDarkMode ? 'text-[#20d69b]' : 'text-emerald-500') : 'text-slate-500'} />
                   {orgName}
                 </button>
               ))}
@@ -281,28 +281,28 @@ export const ImpactMap: React.FC<{ onBack: () => void }> = ({ onBack }) => {
 
         {/* Timeline Slider / Bottom Dock - z-50 */}
         <div className="mt-auto mx-auto w-full max-w-[800px] px-6 pb-10 pointer-events-auto z-50">
-          <div className="bg-[#0b1120]/90 backdrop-blur-3xl p-6 rounded-[2.5rem] border border-slate-700/50 shadow-[0_30px_60px_rgba(0,0,0,0.5)] flex items-center gap-6">
+          <div className={`backdrop-blur-3xl p-6 rounded-[2.5rem] border shadow-[0_30px_60px_rgba(0,0,0,0.5)] flex items-center gap-6 ${isDarkMode ? 'bg-[#0b1120]/90 border-slate-700/50' : 'bg-white/90 border-slate-200'}`}>
             <button 
               type="button"
               onClick={() => setIsPlaying(!isPlaying)}
-              className="w-14 h-14 rounded-2xl bg-[#20d69b] flex items-center justify-center text-[#0b1120] hover:scale-105 transition-transform shadow-[0_0_20px_rgba(32,214,155,0.3)] shrink-0"
+              className={`w-14 h-14 rounded-2xl flex items-center justify-center hover:scale-105 transition-transform shadow-[0_0_20px_rgba(32,214,155,0.3)] shrink-0 ${isDarkMode ? 'bg-[#20d69b] text-[#0b1120]' : 'bg-emerald-400 text-white'}`}
             >
               {isPlaying ? <Pause fill="currentColor" size={24} /> : <Play fill="currentColor" size={24} className="ml-1" />}
             </button>
             <div className="flex-1 flex flex-col gap-2">
               <div className="flex justify-between items-center px-1">
-                <span className="text-[10px] font-black uppercase tracking-[0.3em] text-[#20d69b] flex items-center gap-2">
+                <span className={`text-[10px] font-black uppercase tracking-[0.3em] flex items-center gap-2 ${isDarkMode ? 'text-[#20d69b]' : 'text-emerald-500'}`}>
                    <Clock size={12} /> Time Propagation
                 </span>
-                <span className="text-xl font-serif italic text-white">{currentYear}</span>
+                <span className={`text-xl font-serif italic ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>{currentYear}</span>
               </div>
               <input 
                 type="range" min="2024" max="2026" step="1"
                 value={currentYear}
                 onChange={(e) => setCurrentYear(parseInt(e.target.value))}
-                className="w-full h-1.5 bg-slate-800 rounded-full appearance-none cursor-pointer"
+                className={`w-full h-1.5 rounded-full appearance-none cursor-pointer ${isDarkMode ? 'bg-slate-800' : 'bg-slate-200'}`}
                 style={{
-                  background: `linear-gradient(to right, #20d69b ${(currentYear - 2024) / 2 * 100}%, #1e293b ${(currentYear - 2024) / 2 * 100}%)`
+                  background: isDarkMode ? `linear-gradient(to right, #20d69b ${(currentYear - 2024) / 2 * 100}%, #1e293b ${(currentYear - 2024) / 2 * 100}%)` : `linear-gradient(to right, #34d399 ${(currentYear - 2024) / 2 * 100}%, #e2e8f0 ${(currentYear - 2024) / 2 * 100}%)`
                 }}
               />
               <div className="flex justify-between text-[10px] font-bold text-slate-500 px-1">
@@ -316,31 +316,31 @@ export const ImpactMap: React.FC<{ onBack: () => void }> = ({ onBack }) => {
 
       {/* Selected Org Side Info Card - z-40 */}
       {selectedFeatureProps && (
-        <div className="absolute right-4 md:right-10 top-24 md:top-40 bottom-28 md:bottom-44 w-full max-w-[260px] md:max-w-[360px] bg-[#0b1120]/95 backdrop-blur-3xl border border-slate-700 p-5 md:p-8 rounded-[2rem] md:rounded-[3rem] shadow-2xl z-40 flex flex-col animate-in slide-in-from-right-full duration-500 group pointer-events-auto overflow-y-auto min-h-[300px]">
-          <button type="button" onClick={() => setSelectedOrg(null)} className="absolute top-4 md:top-6 right-4 md:right-6 p-2 md:p-3 hover:bg-slate-800 rounded-xl md:rounded-2xl text-slate-400 hover:text-white transition-colors">
+        <div className={`absolute right-4 md:right-10 top-24 md:top-40 bottom-28 md:bottom-44 w-full max-w-[260px] md:max-w-[360px] backdrop-blur-3xl border p-5 md:p-8 rounded-[2rem] md:rounded-[3rem] shadow-2xl z-40 flex flex-col animate-in slide-in-from-right-full duration-500 group pointer-events-auto overflow-y-auto min-h-[300px] ${isDarkMode ? 'bg-[#0b1120]/95 border-slate-700' : 'bg-white/95 border-slate-200'}`}>
+          <button type="button" onClick={() => setSelectedOrg(null)} className={`absolute top-4 md:top-6 right-4 md:right-6 p-2 md:p-3 rounded-xl md:rounded-2xl transition-colors ${isDarkMode ? 'hover:bg-slate-800 text-slate-400 hover:text-white' : 'hover:bg-slate-100 text-slate-500 hover:text-slate-900'}`}>
             <Target size={16} className="rotate-45 md:w-5 md:h-5" />
           </button>
           
           <div className="flex items-center gap-3 md:gap-4 mb-4 md:mb-8 pr-6">
-             <div className="w-12 h-12 md:w-16 md:h-16 rounded-xl md:rounded-[1.5rem] flex items-center justify-center bg-slate-800 border-2 border-slate-700 shadow-inner group-hover:scale-110 transition-transform duration-500 shrink-0">
-               <Leaf className="w-6 h-6 md:w-8 md:h-8 text-[#20d69b]" />
+             <div className={`w-12 h-12 md:w-16 md:h-16 rounded-xl md:rounded-[1.5rem] flex items-center justify-center border-2 shadow-inner group-hover:scale-110 transition-transform duration-500 shrink-0 ${isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-slate-50 border-slate-200'}`}>
+               <Leaf className={`w-6 h-6 md:w-8 md:h-8 ${isDarkMode ? 'text-[#20d69b]' : 'text-emerald-500'}`} />
              </div>
              <div>
-               <div className="flex items-center gap-1.5 md:gap-2 text-[8px] md:text-[9px] font-black uppercase tracking-[0.2em] text-[#20d69b] mb-0.5 md:mb-1">
+               <div className={`flex items-center gap-1.5 md:gap-2 text-[8px] md:text-[9px] font-black uppercase tracking-[0.2em] mb-0.5 md:mb-1 ${isDarkMode ? 'text-[#20d69b]' : 'text-emerald-500'}`}>
                  <MapPin size={10} className="md:w-3 md:h-3" /> Selected Scope
                </div>
-               <h3 className="text-sm md:text-lg font-serif text-white tracking-tight leading-tight">{selectedFeatureProps.organization_name}</h3>
+               <h3 className={`text-sm md:text-lg font-serif tracking-tight leading-tight ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>{selectedFeatureProps.organization_name}</h3>
              </div>
           </div>
           
           <div className="flex flex-col gap-3 flex-1 overflow-y-auto pr-1">
-            <div className="bg-slate-800/50 p-4 md:p-5 rounded-2xl md:rounded-3xl border border-slate-700/50 shadow-inner flex flex-col items-center justify-center py-5 md:py-8">
-              <span className="text-[8px] md:text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 block mb-1 md:mb-2 text-center">Trees Planted</span>
-              <span className="text-2xl md:text-4xl font-bold text-[#20d69b] font-serif">{selectedFeatureProps.trees_planted.toLocaleString()}</span>
+            <div className={`p-4 md:p-5 rounded-2xl md:rounded-3xl border shadow-inner flex flex-col items-center justify-center py-5 md:py-8 ${isDarkMode ? 'bg-slate-800/50 border-slate-700/50' : 'bg-slate-50 border-slate-200'}`}>
+              <span className={`text-[8px] md:text-[10px] font-black uppercase tracking-[0.2em] block mb-1 md:mb-2 text-center ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}>Trees Planted</span>
+              <span className={`text-2xl md:text-4xl font-bold font-serif ${isDarkMode ? 'text-[#20d69b]' : 'text-emerald-500'}`}>{selectedFeatureProps.trees_planted.toLocaleString()}</span>
             </div>
-            <div className="bg-slate-800/50 p-4 md:p-5 rounded-2xl md:rounded-3xl border border-slate-700/50 shadow-inner flex flex-col items-center justify-center py-5 md:py-8">
-              <span className="text-[8px] md:text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 block mb-1 md:mb-2 text-center">Land Coverage (HA)</span>
-              <span className="text-2xl md:text-4xl font-bold text-white font-serif">{selectedFeatureProps.area_ha.toLocaleString()}</span>
+            <div className={`p-4 md:p-5 rounded-2xl md:rounded-3xl border shadow-inner flex flex-col items-center justify-center py-5 md:py-8 ${isDarkMode ? 'bg-slate-800/50 border-slate-700/50' : 'bg-slate-50 border-slate-200'}`}>
+              <span className={`text-[8px] md:text-[10px] font-black uppercase tracking-[0.2em] block mb-1 md:mb-2 text-center ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}>Land Coverage (HA)</span>
+              <span className={`text-2xl md:text-4xl font-bold font-serif ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>{selectedFeatureProps.area_ha.toLocaleString()}</span>
             </div>
           </div>
           

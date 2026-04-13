@@ -15,6 +15,15 @@ export interface User {
   orgId?: string;
 }
 
+export interface DonationEvent {
+  id: string;
+  userName: string;
+  treeType: ItemType;
+  treeName: string;
+  amount: number;
+  timestamp: string;
+}
+
 export interface TreeType {
   id: ItemType;
   name: string;
@@ -48,6 +57,7 @@ export interface Organization {
   totalTrees: number;
   totalCo2: number;
   donations: number;
+  recentDonations?: DonationEvent[];
   lastUpdate?: string;
 }
 
