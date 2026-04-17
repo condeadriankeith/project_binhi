@@ -65,6 +65,4 @@ export interface GameState {
   balance: number;
   level: number;
   showCommunity: boolean;
-  isVaultOpen: boolean;
-  showAssistant: boolean;
 }

@@ -10,15 +10,14 @@
     "start": "serve -s dist"
   },
   "dependencies": {
-    "@google/genai": "^1.38.0",
     "@react-three/drei": "9.121.4",
     "@react-three/fiber": "9.0.0-rc.0",
     "lucide-react": "0.460.0",
     "maplibre-gl": "^5.20.1",
     "react": "19.0.0",
     "react-dom": "19.0.0",
-    "three": "0.174.0",
-    "serve": "^14.2.4"
+    "serve": "^14.2.4",
+    "three": "0.174.0"
   },
   "overrides": {
     "react": "19.0.0",

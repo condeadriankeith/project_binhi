@@ -7,7 +7,6 @@ interface Props {
   treesPlanted: number;
   balance: number;
   onCommunityClick: () => void;
-  onAssistantClick: () => void;
   onTopUp: () => void;
   isDarkMode?: boolean;
 }
@@ -18,7 +17,6 @@ export const HUD: React.FC<Props> = ({
   treesPlanted, 
   balance, 
   onCommunityClick,
-  onAssistantClick,
   onTopUp,
   isDarkMode = false
 }) => {

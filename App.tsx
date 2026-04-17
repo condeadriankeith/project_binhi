@@ -4,7 +4,6 @@ import { IslandScene } from './components/IslandScene';
 import { HUD } from './components/HUD';
 import { BotanistKit } from './components/BotantistKit';
 import { CommunityImpact } from './components/CommunityImpact';
-import { EcoAssistant } from './components/EcoAssistant';
 import { ImpactMap } from './components/ImpactMap';
 import { Login } from './components/Login';
 import { OrgDashboard } from './components/OrgDashboard';
@@ -37,8 +36,6 @@ const App: React.FC = () => {
     balance: INITIAL_BALANCE,
     level: 1,
     showCommunity: false,
-    isVaultOpen: false,
-    showAssistant: false,
   });
 
   const [selectedTree, setSelectedTree] = useState<ItemType | null>(null);
@@ -176,7 +173,6 @@ const App: React.FC = () => {
             treesPlanted={activeOrg.totalTrees}
             totalCo2={activeOrg.totalCo2}
             onCommunityClick={() => setGameState(p => ({ ...p, showCommunity: true }))}
-            onAssistantClick={() => setGameState(p => ({ ...p, showAssistant: true }))}
             onTopUp={() => setGameState(p => ({ ...p, balance: p.balance + 1000 }))}
             isDarkMode={isDarkMode}
           />
@@ -319,13 +315,7 @@ const App: React.FC = () => {
         isDarkMode={isDarkMode}
       />
 
-      {gameState.showAssistant && (
-        <EcoAssistant 
-          tiles={activeOrg.tiles}
-          onClose={() => setGameState(p => ({ ...p, showAssistant: false }))}
-          isDarkMode={isDarkMode}
-        />
-      )}
+
 
       {/* Planting Indicator */}
       {selectedTree && currentView === 'island' && (
