@@ -9,8 +9,9 @@ import { Login } from './components/Login';
 import { OrgDashboard } from './components/OrgDashboard';
 import { ProfilePage } from './components/ProfilePage';
 import { SettingsPage } from './components/SettingsPage';
+import { PostUpdateModal } from './components/PostUpdateModal';
 import { ORGANIZATIONS, INITIAL_BALANCE, TREE_SPECIES } from './constants';
-import { TileData, ItemType, GameState, Organization, User } from './types';
+import { TileData, ItemType, GameState, Organization, User, ImpactUpdate } from './types';
 
 type View = 'island' | 'map' | 'dashboard';
 
@@ -22,6 +23,7 @@ const App: React.FC = () => {
   const [isHubCollapsed, setIsHubCollapsed] = useState(true);
   const [showProfile, setShowProfile] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  const [showPostUpdateModal, setShowPostUpdateModal] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState<boolean>(() => {
     const saved = localStorage.getItem('binhi_theme');
     return saved ? JSON.parse(saved) : false;
@@ -136,6 +138,16 @@ const App: React.FC = () => {
 
   const activeTreeData = useMemo(() => TREE_SPECIES.find(t => t.id === selectedTree), [selectedTree]);
 
+  const handlePostUpdate = useCallback((update: ImpactUpdate) => {
+    setOrgs(prev => {
+      const newOrgs = [...prev];
+      const org = { ...newOrgs[activeOrgIndex] };
+      org.updates = [update, ...(org.updates || [])];
+      newOrgs[activeOrgIndex] = org;
+      return newOrgs;
+    });
+  }, [activeOrgIndex]);
+
   const nextOrg = () => setActiveOrgIndex((prev) => (prev + 1) % orgs.length);
   const prevOrg = () => setActiveOrgIndex((prev) => (prev - 1 + orgs.length) % orgs.length);
 
@@ -150,7 +162,7 @@ const App: React.FC = () => {
         <OrgDashboard 
           org={activeOrg} 
           onManageIslands={() => setCurrentView('island')}
-          onPostUpdate={() => alert('Update portal opening soon...')}
+          onPostUpdate={() => setShowPostUpdateModal(true)}
           isDarkMode={isDarkMode}
         />
       ) : currentView === 'island' ? (
@@ -312,6 +324,13 @@ const App: React.FC = () => {
       <CommunityImpact 
         isVisible={gameState.showCommunity}
         onClose={() => setGameState(p => ({ ...p, showCommunity: false }))}
+        isDarkMode={isDarkMode}
+      />
+
+      <PostUpdateModal
+        isVisible={showPostUpdateModal}
+        onClose={() => setShowPostUpdateModal(false)}
+        onSubmit={handlePostUpdate}
         isDarkMode={isDarkMode}
       />
 

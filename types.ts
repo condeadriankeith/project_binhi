@@ -1,9 +1,9 @@
 export enum ItemType {
-  HORNBEAM = 'HORNBEAM',
-  CEDAR = 'CEDAR',
-  MAPLE = 'MAPLE',
-  SPRUCE = 'SPRUCE',
-  WILLOW = 'WILLOW'
+  NARRA = 'NARRA',
+  MOLAVE = 'MOLAVE',
+  BANABA = 'BANABA',
+  DAO = 'DAO',
+  KAMAGONG = 'KAMAGONG'
 }
 
 export type UserRole = 'individual' | 'organization';
@@ -45,6 +45,17 @@ export interface TileData {
   offsetZ?: number;
 }
 
+export type UpdateCategory = 'field-work' | 'community' | 'milestone';
+
+export interface ImpactUpdate {
+  id: string;
+  title: string;
+  category: UpdateCategory;
+  content: string;
+  timestamp: string;
+  mediaUrl?: string;
+}
+
 export interface Organization {
   id: string;
   name: string;
@@ -59,6 +70,7 @@ export interface Organization {
   donations: number;
   recentDonations?: DonationEvent[];
   lastUpdate?: string;
+  updates?: ImpactUpdate[];
 }
 
 export interface GameState {
