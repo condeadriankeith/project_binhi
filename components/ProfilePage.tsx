@@ -1,6 +1,7 @@
 import React from 'react';
 import { User, X, Mail, Shield, Calendar, Award } from 'lucide-react';
 import { User as UserType } from '../types';
+import { ORGANIZATIONS } from '../constants';
 
 interface Props {
   user: UserType;
@@ -33,9 +34,16 @@ export const ProfilePage: React.FC<Props> = ({ user, onClose, isDarkMode = false
           <div className="flex justify-between items-start mb-8">
             <div>
               <h2 className={`text-xl md:text-2xl font-serif tracking-tight ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>{user.name}</h2>
-              <div className="flex items-center gap-2 text-emerald-400 text-xs font-bold uppercase tracking-widest mt-1">
-                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                {user.role === 'organization' ? 'Organization Admin' : 'Certified Individual Architect'}
+              <div className="flex flex-col gap-1 mt-1">
+                <div className="flex items-center gap-2 text-emerald-400 text-xs font-bold uppercase tracking-widest">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                  {user.role === 'organization' ? 'Organization Admin' : 'Certified Individual Architect'}
+                </div>
+                {user.role === 'organization' && user.orgId && (
+                  <div className={`text-[10px] font-bold uppercase tracking-[0.2em] ml-4 ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>
+                    {ORGANIZATIONS.find(o => o.id === user.orgId)?.name || 'Unknown Hub'}
+                  </div>
+                )}
               </div>
             </div>
             <Award size={32} className="text-amber-500/50" />

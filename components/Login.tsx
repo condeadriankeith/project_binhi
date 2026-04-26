@@ -64,6 +64,12 @@ export const Login: React.FC<Props> = ({ onLogin, isDarkMode = false }) => {
         return;
       }
 
+      // Verify organization if role is organization
+      if (role === 'organization' && user.orgId !== orgId) {
+        setError("Unauthorized uplink. This designation is not registered for the selected hub.");
+        return;
+      }
+
       // Verify name (acting as a simple password for prototype)
       if (user.name.toLowerCase() !== name.toLowerCase()) {
         setError("Designation mismatch. Please verify your identity.");
@@ -158,9 +164,9 @@ export const Login: React.FC<Props> = ({ onLogin, isDarkMode = false }) => {
                 />
               </div>
 
-              {role === 'organization' && isRegistering && (
+              {role === 'organization' && (
                 <div className="animate-in fade-in slide-in-from-top-2">
-                  <label className={`block text-[10px] font-bold uppercase tracking-widest mb-2 ml-1 ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>Select Forest Hub</label>
+                  <label className={`block text-[10px] font-bold uppercase tracking-widest mb-2 ml-1 ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>Organization Hub</label>
                   <select
                     value={orgId}
                     onChange={(e) => setOrgId(e.target.value)}
