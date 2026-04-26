@@ -1,16 +1,17 @@
 import React, { useState } from 'react';
 import { TreeType, ItemType } from '../types';
 import { TREE_SPECIES } from '../constants';
-import { Info, Sprout, ChevronDown, ChevronUp } from 'lucide-react';
+import { Info, Sprout, ChevronDown, ChevronUp, Lock } from 'lucide-react';
 
 interface Props {
   balance: number;
   selectedTool: ItemType | null;
   onSelect: (item: ItemType) => void;
   isDarkMode?: boolean;
+  userLevel?: number;
 }
 
-export const BotanistKit: React.FC<Props> = ({ balance, selectedTool, onSelect, isDarkMode = false }) => {
+export const BotanistKit: React.FC<Props> = ({ balance, selectedTool, onSelect, isDarkMode = false, userLevel = 1 }) => {
   const [isCollapsed, setIsCollapsed] = useState(true);
 
   return (
@@ -39,31 +40,41 @@ export const BotanistKit: React.FC<Props> = ({ balance, selectedTool, onSelect, 
               {TREE_SPECIES.map((item: TreeType) => {
                 const isSelected = selectedTool === item.id;
                 const canAfford = balance >= item.price;
+                const isLocked = userLevel < item.unlockLevel;
 
                 return (
                   <button
                     key={item.id}
-                    onClick={() => canAfford && onSelect(item.id)}
-                    disabled={!canAfford}
+                    onClick={() => !isLocked && canAfford && onSelect(item.id)}
+                    disabled={isLocked || !canAfford}
                     className={`
                       relative group flex flex-col items-center p-2.5 md:p-4 rounded-xl md:rounded-2xl transition-all duration-300 w-24 md:w-36 shrink-0
                       ${isSelected 
                         ? (isDarkMode ? 'bg-emerald-950/50 border border-emerald-500/50 shadow-[0_0_20px_rgba(16,185,129,0.2)] -translate-y-1.5 md:-translate-y-2' : 'bg-emerald-50 border border-emerald-500/50 shadow-[0_0_20px_rgba(16,185,129,0.2)] -translate-y-1.5 md:-translate-y-2')
                         : (isDarkMode ? 'bg-slate-800/50 border border-slate-700/50 hover:bg-slate-800 hover:border-slate-600 hover:-translate-y-1' : 'bg-slate-50 border border-slate-200 hover:bg-slate-100 hover:border-slate-300 hover:-translate-y-1')}
-                      ${!canAfford ? 'opacity-40 grayscale cursor-not-allowed' : 'cursor-pointer'}
+                      ${isLocked || !canAfford ? 'opacity-40 grayscale cursor-not-allowed' : 'cursor-pointer'}
+                      ${isLocked ? 'border-dashed border-slate-500/30' : ''}
                     `}
                   >
                     {/* Icon Container */}
                     <div className={`
-                      w-10 h-10 md:w-16 md:h-16 rounded-xl md:rounded-2xl flex items-center justify-center text-xl md:text-3xl mb-2 md:mb-3 transition-transform duration-300
+                      w-10 h-10 md:w-16 md:h-16 rounded-xl md:rounded-2xl flex items-center justify-center text-xl md:text-3xl mb-2 md:mb-3 transition-transform duration-300 relative
                       ${isSelected ? 'bg-emerald-500/20 scale-110' : (isDarkMode ? 'bg-slate-900/50 group-hover:scale-110' : 'bg-white shadow-sm group-hover:scale-110')}
                     `}>
-                      {item.icon}
+                      {isLocked ? <Lock size={24} className="text-slate-500" /> : item.icon}
+                      
+                      {isLocked && (
+                        <div className="absolute -top-1 -right-1 bg-slate-700 text-[8px] font-black px-1.5 py-0.5 rounded-full text-white uppercase tracking-tighter">
+                          Lvl {item.unlockLevel}
+                        </div>
+                      )}
                     </div>
                     
-                    <h3 className={`font-bold text-[10px] md:text-sm mb-0.5 md:mb-1 ${isDarkMode ? 'text-slate-200' : 'text-slate-900'}`}>{item.name}</h3>
+                    <h3 className={`font-bold text-[10px] md:text-sm mb-0.5 md:mb-1 ${isDarkMode ? 'text-slate-200' : 'text-slate-900'}`}>
+                      {isLocked ? 'Locked Species' : item.name}
+                    </h3>
                     <span className={`font-mono font-bold text-[9px] md:text-xs mb-1.5 md:mb-2 ${isDarkMode ? 'text-emerald-400' : 'text-emerald-600'}`}>
-                      ₱{item.price.toLocaleString()}
+                      {isLocked ? '---' : `₱${item.price.toLocaleString()}`}
                     </span>
                     
                     {/* Tooltip / Extra Info */}
@@ -74,8 +85,14 @@ export const BotanistKit: React.FC<Props> = ({ balance, selectedTool, onSelect, 
                       ${isDarkMode ? 'bg-slate-800 text-white border-slate-600' : 'bg-white text-slate-900 border-slate-200'}
                       ${isSelected ? 'opacity-100 -translate-y-1.5 md:-translate-y-2' : ''}
                     `}>
-                      <span className={`font-bold ${isDarkMode ? 'text-emerald-400' : 'text-emerald-600'}`}>Offsets {item.co2Factor}kg CO2/yr</span>
-                      <span className={isDarkMode ? 'text-slate-400' : 'text-slate-500'}>Unlocks at Level {item.unlockLevel}</span>
+                      {isLocked ? (
+                        <span className="font-bold text-amber-500">Unlocks at Level {item.unlockLevel}</span>
+                      ) : (
+                        <>
+                          <span className={`font-bold ${isDarkMode ? 'text-emerald-400' : 'text-emerald-600'}`}>Offsets {item.co2Factor}kg CO2/yr</span>
+                          <span className={isDarkMode ? 'text-slate-400' : 'text-slate-500'}>Botanist Level {item.unlockLevel} required</span>
+                        </>
+                      )}
                       <div className={`absolute -bottom-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 md:w-2 md:h-2 border-b border-r rotate-45 ${isDarkMode ? 'bg-slate-800 border-slate-600' : 'bg-white border-slate-200'}`}></div>
                     </div>
                   </button>

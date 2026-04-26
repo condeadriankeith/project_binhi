@@ -5,6 +5,14 @@ body {
   box-sizing: border-box;
   background-color: #0B1120;
   color: #e2e8f0;
+  font-family: "Google Sans", sans-serif;
+  font-optical-sizing: auto;
+}
+
+.font-serif {
+  font-family: "Google Sans", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: 600;
 }
 
 #root {

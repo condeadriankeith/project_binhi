@@ -28,17 +28,67 @@ const App: React.FC = () => {
     const saved = localStorage.getItem('binhi_theme');
     return saved ? JSON.parse(saved) : false;
   });
+  
+  const [hapticsEnabled, setHapticsEnabled] = useState<boolean>(() => {
+    const saved = localStorage.getItem('binhi_haptics');
+    return saved ? JSON.parse(saved) : true;
+  });
+  
+  const [notificationsEnabled, setNotificationsEnabled] = useState<boolean>(() => {
+    const saved = localStorage.getItem('binhi_notifications');
+    return saved ? JSON.parse(saved) : true;
+  });
+
   const [isSceneReady, setIsSceneReady] = useState(false);
+
+  // Auto-login from session
+  useEffect(() => {
+    const savedSession = localStorage.getItem('binhi_session');
+    if (savedSession) {
+      setUser(JSON.parse(savedSession));
+    }
+  }, []);
 
   useEffect(() => {
     localStorage.setItem('binhi_theme', JSON.stringify(isDarkMode));
   }, [isDarkMode]);
+
+  useEffect(() => {
+    localStorage.setItem('binhi_haptics', JSON.stringify(hapticsEnabled));
+  }, [hapticsEnabled]);
+
+  useEffect(() => {
+    localStorage.setItem('binhi_notifications', JSON.stringify(notificationsEnabled));
+  }, [notificationsEnabled]);
   
-  const [gameState, setGameState] = useState<GameState>({
-    balance: INITIAL_BALANCE,
-    level: 1,
-    showCommunity: false,
+  const [gameState, setGameState] = useState<GameState>(() => {
+    const saved = localStorage.getItem('binhi_game_state');
+    return saved ? JSON.parse(saved) : {
+      balance: INITIAL_BALANCE,
+      level: 1,
+      showCommunity: false,
+    };
   });
+
+  useEffect(() => {
+    localStorage.setItem('binhi_game_state', JSON.stringify({
+      ...gameState,
+      showCommunity: false // Don't persist modal state
+    }));
+  }, [gameState]);
+
+  // Load orgs from localStorage initially if available
+  useEffect(() => {
+    const savedOrgs = localStorage.getItem('binhi_orgs');
+    if (savedOrgs) {
+      setOrgs(JSON.parse(savedOrgs));
+    }
+  }, []);
+
+  // Save orgs to localStorage whenever they change
+  useEffect(() => {
+    localStorage.setItem('binhi_orgs', JSON.stringify(orgs));
+  }, [orgs]);
 
   const [selectedTree, setSelectedTree] = useState<ItemType | null>(null);
 
@@ -89,15 +139,36 @@ const App: React.FC = () => {
         setCurrentView('island');
       }
     }
-  }, [user]);
+  }, [user, orgs]);
+
+  const handleLogout = useCallback(() => {
+    localStorage.removeItem('binhi_session');
+    setUser(null);
+  }, []);
 
   const activeOrg = orgs[activeOrgIndex];
+
+  // Calculate current level based on total trees planted across all islands
+  const totalTreesPlanted = useMemo(() => orgs.reduce((sum, org) => sum + org.totalTrees, 0), [orgs]);
+  const currentLevel = useMemo(() => Math.floor(totalTreesPlanted / 5) + 1, [totalTreesPlanted]);
+
+  useEffect(() => {
+    if (gameState.level !== currentLevel) {
+      setGameState(prev => ({ ...prev, level: currentLevel }));
+    }
+  }, [currentLevel, gameState.level]);
 
   const handleTileClick = useCallback((id: number) => {
     if (!selectedTree) return;
 
     const treeDef = TREE_SPECIES.find(t => t.id === selectedTree);
-    if (!treeDef || gameState.balance < treeDef.price) return;
+    if (!treeDef) return;
+
+    if (gameState.balance < treeDef.price) {
+      alert(`Insufficient funds for ${treeDef.name}. Protocol requires ₱${treeDef.price.toLocaleString()}.`);
+      setSelectedTree(null);
+      return;
+    }
 
     setOrgs(prev => {
       const newOrgs = [...prev];
@@ -163,7 +234,9 @@ const App: React.FC = () => {
           org={activeOrg} 
           onManageIslands={() => setCurrentView('island')}
           onPostUpdate={() => setShowPostUpdateModal(true)}
+          onLogout={() => setUser(null)}
           isDarkMode={isDarkMode}
+          uniqueSupporters={Array.from(new Set(activeOrg.recentDonations?.map(d => d.userName) || [])).length + 2482} // Base + session
         />
       ) : currentView === 'island' ? (
         <>
@@ -187,6 +260,7 @@ const App: React.FC = () => {
             onCommunityClick={() => setGameState(p => ({ ...p, showCommunity: true }))}
             onTopUp={() => setGameState(p => ({ ...p, balance: p.balance + 1000 }))}
             isDarkMode={isDarkMode}
+            level={gameState.level}
           />
 
           {/* Organization Context Card with Integrated Switcher */}
@@ -243,17 +317,18 @@ const App: React.FC = () => {
             selectedTool={selectedTree}
             onSelect={(type) => setSelectedTree(type === selectedTree ? null : type)}
             isDarkMode={isDarkMode}
+            userLevel={gameState.level}
           />
 
           {/* Secondary Actions: Impact & Logout */}
-          <div className="fixed top-24 md:top-32 right-4 md:right-8 z-30 flex flex-col items-end gap-3 pointer-events-none animate-in fade-in slide-in-from-right-8 duration-1000 delay-700 fill-mode-both">
+          <div className="fixed top-24 md:top-32 right-4 md:right-8 z-30 flex flex-col items-end gap-2 md:gap-3 pointer-events-none animate-in fade-in slide-in-from-right-8 duration-1000 delay-700 fill-mode-both">
             {user.role === 'organization' ? (
               <button 
                 onClick={() => setCurrentView('dashboard')}
-                className={`pointer-events-auto backdrop-blur-xl p-3 md:p-5 rounded-2xl md:rounded-3xl shadow-[0_20px_40px_rgba(0,0,0,0.2)] transition-all flex items-center gap-3 group border ${isDarkMode ? 'bg-slate-900/90 border-slate-700/50 hover:bg-slate-800' : 'bg-white/90 border-slate-200 hover:bg-slate-50'}`}
+                className={`pointer-events-auto backdrop-blur-xl p-2.5 md:p-5 rounded-xl md:rounded-3xl shadow-[0_20px_40px_rgba(0,0,0,0.2)] transition-all flex items-center gap-2 md:gap-3 group border ${isDarkMode ? 'bg-slate-900/90 border-slate-700/50 hover:bg-slate-800' : 'bg-white/90 border-slate-200 hover:bg-slate-50'}`}
               >
-                <div className="bg-emerald-500/20 p-2 rounded-xl group-hover:scale-110 transition-transform">
-                  <Activity size={20} className="text-emerald-400" />
+                <div className="bg-emerald-500/20 p-1.5 md:p-2 rounded-lg md:rounded-xl group-hover:scale-110 transition-transform">
+                  <Activity size={18} className="text-emerald-400" />
                 </div>
                 <div className="hidden md:flex flex-col items-start text-left">
                   <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-emerald-400/70">Return To</span>
@@ -263,10 +338,10 @@ const App: React.FC = () => {
             ) : (
               <button 
                 onClick={() => setCurrentView('map')}
-                className={`pointer-events-auto backdrop-blur-xl p-3 md:p-5 rounded-2xl md:rounded-3xl shadow-[0_20px_40px_rgba(0,0,0,0.2)] transition-all flex items-center gap-3 group border ${isDarkMode ? 'bg-slate-900/90 border-slate-700/50 hover:bg-slate-800' : 'bg-white/90 border-slate-200 hover:bg-slate-50'}`}
+                className={`pointer-events-auto backdrop-blur-xl p-2.5 md:p-5 rounded-xl md:rounded-3xl shadow-[0_20px_40px_rgba(0,0,0,0.2)] transition-all flex items-center gap-2 md:gap-3 group border ${isDarkMode ? 'bg-slate-900/90 border-slate-700/50 hover:bg-slate-800' : 'bg-white/90 border-slate-200 hover:bg-slate-50'}`}
               >
-                <div className="bg-emerald-500/20 p-2 rounded-xl group-hover:scale-110 transition-transform">
-                  <MapIcon size={20} className="text-emerald-400" />
+                <div className="bg-emerald-500/20 p-1.5 md:p-2 rounded-lg md:rounded-xl group-hover:scale-110 transition-transform">
+                  <MapIcon size={18} className="text-emerald-400" />
                 </div>
                 <div className="hidden md:flex flex-col items-start text-left">
                   <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-emerald-400/70">Restoration</span>
@@ -276,8 +351,8 @@ const App: React.FC = () => {
             )}
 
             <button 
-              onClick={() => setUser(null)}
-              className={`p-3 md:p-4 backdrop-blur-xl border rounded-2xl transition-all shadow-lg pointer-events-auto group ${isDarkMode ? 'bg-slate-900/60 border-slate-700/50 hover:bg-slate-800 text-slate-400 hover:text-red-400' : 'bg-white/80 border-slate-200 hover:bg-slate-100 text-slate-500 hover:text-red-500'}`}
+              onClick={handleLogout}
+              className={`p-2.5 md:p-4 backdrop-blur-xl border rounded-xl md:rounded-2xl transition-all shadow-lg pointer-events-auto group ${isDarkMode ? 'bg-slate-900/60 border-slate-700/50 hover:bg-slate-800 text-slate-400 hover:text-red-400' : 'bg-white/80 border-slate-200 hover:bg-slate-100 text-slate-500 hover:text-red-500'}`}
               title="Logout"
             >
               <LogOut size={18} />
@@ -289,22 +364,24 @@ const App: React.FC = () => {
       )}
 
       {/* Top Left Navigation: Profile & Settings */}
-      <div className="fixed top-6 left-4 md:left-8 z-50 flex flex-col gap-3">
+      {currentView !== 'map' && (
+        <div className="fixed top-4 md:top-6 left-4 md:left-8 z-50 flex flex-col gap-2 md:gap-3">
         <button 
           onClick={() => setShowProfile(true)}
-          className={`p-3 md:p-4 backdrop-blur-xl border rounded-2xl transition-all shadow-lg group ${isDarkMode ? 'bg-slate-900/60 border-slate-700/50 hover:bg-slate-800 text-slate-400 hover:text-emerald-400' : 'bg-white/80 border-slate-200 hover:bg-slate-100 text-slate-500 hover:text-emerald-500'}`}
+          className={`p-2.5 md:p-4 backdrop-blur-xl border rounded-xl md:rounded-2xl transition-all shadow-lg group ${isDarkMode ? 'bg-slate-900/60 border-slate-700/50 hover:bg-slate-800 text-slate-400 hover:text-emerald-400' : 'bg-white/80 border-slate-200 hover:bg-slate-100 text-slate-500 hover:text-emerald-500'}`}
           title="Profile"
         >
           <UserIcon size={20} />
         </button>
         <button 
           onClick={() => setShowSettings(true)}
-          className={`p-3 md:p-4 backdrop-blur-xl border rounded-2xl transition-all shadow-lg group ${isDarkMode ? 'bg-slate-900/60 border-slate-700/50 hover:bg-slate-800 text-slate-400 hover:text-blue-400' : 'bg-white/80 border-slate-200 hover:bg-slate-100 text-slate-500 hover:text-blue-500'}`}
+          className={`p-2.5 md:p-4 backdrop-blur-xl border rounded-xl md:rounded-2xl transition-all shadow-lg group ${isDarkMode ? 'bg-slate-900/60 border-slate-700/50 hover:bg-slate-800 text-slate-400 hover:text-blue-400' : 'bg-white/80 border-slate-200 hover:bg-slate-100 text-slate-500 hover:text-blue-500'}`}
           title="Settings"
         >
           <SettingsIcon size={20} />
         </button>
       </div>
+    )}
 
 
 
@@ -318,6 +395,10 @@ const App: React.FC = () => {
           onClose={() => setShowSettings(false)} 
           isDarkMode={isDarkMode} 
           onToggleTheme={() => setIsDarkMode(!isDarkMode)} 
+          hapticsEnabled={hapticsEnabled}
+          onToggleHaptics={() => setHapticsEnabled(!hapticsEnabled)}
+          notificationsEnabled={notificationsEnabled}
+          onToggleNotifications={() => setNotificationsEnabled(!notificationsEnabled)}
         />
       )}
 
@@ -325,6 +406,8 @@ const App: React.FC = () => {
         isVisible={gameState.showCommunity}
         onClose={() => setGameState(p => ({ ...p, showCommunity: false }))}
         isDarkMode={isDarkMode}
+        totalTrees={orgs.reduce((sum, o) => sum + o.totalTrees, 0) + 33600000} // Global base + session
+        totalCo2={orgs.reduce((sum, o) => sum + o.totalCo2, 0) + 1800000000} // Global base + session
       />
 
       <PostUpdateModal

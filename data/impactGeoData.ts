@@ -10,7 +10,11 @@ export const IMPACT_GEOJSON = {
         "year": 2024,
         "type": "thriving",
         "trees_planted": 45000,
-        "area_ha": 25
+        "area_ha": 25,
+        "co2_sequestered": 112500,
+        "carbon_offset_tons": 112.5,
+        "avg_tree_age": 3.5,
+        "biodiversity_score": 92
       },
       "geometry": {
         "type": "Polygon",
@@ -28,7 +32,11 @@ export const IMPACT_GEOJSON = {
         "year": 2025,
         "type": "active",
         "trees_planted": 12000,
-        "area_ha": 5
+        "area_ha": 5,
+        "co2_sequestered": 28500,
+        "carbon_offset_tons": 28.5,
+        "avg_tree_age": 1.2,
+        "biodiversity_score": 78
       },
       "geometry": {
         "type": "Polygon",
@@ -46,7 +54,11 @@ export const IMPACT_GEOJSON = {
         "year": 2026,
         "type": "target",
         "trees_planted": 65000,
-        "area_ha": 30
+        "area_ha": 30,
+        "co2_sequestered": 162500,
+        "carbon_offset_tons": 162.5,
+        "avg_tree_age": 2.1,
+        "biodiversity_score": 88
       },
       "geometry": {
         "type": "Polygon",
@@ -56,4 +68,30 @@ export const IMPACT_GEOJSON = {
       }
     }
   ]
+};
+
+// Carbon footprint statistics by organization
+export const ORG_CARBON_STATS = {
+  "BCC Advocates for Kalikasan (BAKURAN)": {
+    totalTrees: 110000,
+    totalCO2: 275000,
+    carbon_offset_tons: 275,
+    yearlyOffset: 82500,
+    equivalentCars: 18,
+    equivalentFlights: 450,
+    forestHealth: "Excellent",
+    carbonIntensity: "High Sequestration",
+    lastAssessment: "2026-04-15"
+  },
+  "EarthGuards USLS": {
+    totalTrees: 12000,
+    totalCO2: 28500,
+    carbon_offset_tons: 28.5,
+    yearlyOffset: 8500,
+    equivalentCars: 2,
+    equivalentFlights: 47,
+    forestHealth: "Good",
+    carbonIntensity: "Urban Standard",
+    lastAssessment: "2026-03-20"
+  }
 };

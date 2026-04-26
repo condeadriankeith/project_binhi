@@ -44,16 +44,16 @@ const LowPolyTree = ({ type, rotation = 0, targetScale = 1 }: { type: ItemType; 
 
   const treeConfig = useMemo(() => {
     switch (type) {
-      case ItemType.HORNBEAM: // Narra
-        return { height: 1.6, width: 0.8, detail: 8, leaves: 3, leafColor: '#2D6B22', trunkColor: '#4A3728' };
-      case ItemType.CEDAR: // Molave
-        return { height: 1.8, width: 0.6, detail: 6, leaves: 2, leafColor: '#3F704D', trunkColor: '#6D4C41' };
-      case ItemType.MAPLE: // Yakal
-        return { height: 2.2, width: 0.5, detail: 5, leaves: 4, leafColor: '#1B4332', trunkColor: '#3E2723' };
-      case ItemType.SPRUCE: // Banuyo
-        return { height: 1.4, width: 0.9, detail: 7, leaves: 2, leafColor: '#409167', trunkColor: '#5D4037' };
-      case ItemType.WILLOW: // Malugai
-        return { height: 1.5, width: 0.7, detail: 8, leaves: 1, leafColor: '#D95D39', trunkColor: '#5C4033' };
+      case ItemType.NARRA: // National tree, broad hardwood canopy
+        return { height: 1.8, width: 0.9, detail: 8, leaves: 3, leafColor: '#2D6B22', trunkColor: '#4A3728' };
+      case ItemType.MOLAVE: // Tugas - very hard wood, sturdy
+        return { height: 1.6, width: 0.5, detail: 6, leaves: 2, leafColor: '#3F704D', trunkColor: '#6D4C41' };
+      case ItemType.BANABA: // Purple flowers, ornamental
+        return { height: 1.5, width: 0.7, detail: 7, leaves: 2, leafColor: '#8B5CF6', trunkColor: '#5D4037' };
+      case ItemType.DAO: // Fast-growing canopy tree
+        return { height: 2.0, width: 0.8, detail: 6, leaves: 3, leafColor: '#1B4332', trunkColor: '#3E2723' };
+      case ItemType.KAMAGONG: // Philippine Ebony, premium hardwood
+        return { height: 1.7, width: 0.6, detail: 5, leaves: 2, leafColor: '#0F3D2E', trunkColor: '#2D1F1A' };
       default:
         return { height: 1.2, width: 0.5, detail: 6, leaves: 2, leafColor: '#409167', trunkColor: '#5D4037' };
     }

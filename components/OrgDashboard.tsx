@@ -8,7 +8,8 @@ import {
   Clock, 
   ChevronRight,
   PlusCircle,
-  MessageSquare
+  MessageSquare,
+  LogOut
 } from 'lucide-react';
 import { Organization, TileData } from '../types';
 
@@ -16,10 +17,12 @@ interface Props {
   org: Organization;
   onManageIslands: () => void;
   onPostUpdate: () => void;
+  onLogout: () => void;
   isDarkMode?: boolean;
+  uniqueSupporters?: number;
 }
 
-export const OrgDashboard: React.FC<Props> = ({ org, onManageIslands, onPostUpdate, isDarkMode = false }) => {
+export const OrgDashboard: React.FC<Props> = ({ org, onManageIslands, onPostUpdate, onLogout, isDarkMode = false, uniqueSupporters = 2482 }) => {
   return (
     <div className={`w-full min-h-screen p-6 md:p-10 pb-32 overflow-y-auto transition-colors duration-500 ${isDarkMode ? 'bg-[#0B1120] text-white' : 'bg-slate-50 text-slate-900'}`}>
       <div className="max-w-6xl mx-auto space-y-10">
@@ -35,13 +38,22 @@ export const OrgDashboard: React.FC<Props> = ({ org, onManageIslands, onPostUpda
             <p className={`mt-2 font-medium italic ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>"{org.mission}"</p>
           </div>
           
-          <button 
-            onClick={onPostUpdate}
-            className="bg-emerald-600 hover:bg-emerald-500 text-white px-6 py-4 rounded-2xl font-bold flex items-center gap-3 transition-all shadow-lg active:scale-95 group"
-          >
-            <PlusCircle size={20} />
-            Post Impact Update
-          </button>
+          <div className="flex items-center gap-3">
+            <button 
+              onClick={onPostUpdate}
+              className="bg-emerald-600 hover:bg-emerald-500 text-white px-6 py-4 rounded-2xl font-bold flex items-center gap-3 transition-all shadow-lg active:scale-95 group"
+            >
+              <PlusCircle size={20} />
+              Post Impact Update
+            </button>
+            <button 
+              onClick={onLogout}
+              className={`p-4 border rounded-2xl transition-all shadow-lg group ${isDarkMode ? 'bg-slate-900/60 border-slate-700/50 hover:bg-slate-800 text-slate-400 hover:text-red-400' : 'bg-white/80 border-slate-200 hover:bg-slate-100 text-slate-500 hover:text-red-500'}`}
+              title="Logout"
+            >
+              <LogOut size={20} />
+            </button>
+          </div>
         </div>
 
         {/* Stats Grid */}
@@ -70,7 +82,7 @@ export const OrgDashboard: React.FC<Props> = ({ org, onManageIslands, onPostUpda
           <StatCard 
             icon={<Users className="text-purple-400" />} 
             label="Supporters" 
-            value="2,482" 
+            value={uniqueSupporters.toLocaleString()} 
             sub="Active community"
             isDarkMode={isDarkMode}
           />
@@ -145,8 +157,78 @@ export const OrgDashboard: React.FC<Props> = ({ org, onManageIslands, onPostUpda
               )}
             </div>
           </div>
-
         </div>
+
+        {/* Impact Updates Feed */}
+        <div className="space-y-6">
+          <div className="flex items-center justify-between">
+            <h2 className={`text-xl font-serif ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>Impact Updates Feed</h2>
+            <div className={`text-[10px] font-bold uppercase tracking-widest ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}>
+              {org.updates?.length || 0} Updates Published
+            </div>
+          </div>
+
+          {(!org.updates || org.updates.length === 0) ? (
+            <div className={`backdrop-blur-2xl border rounded-[2rem] p-12 text-center shadow-xl ${isDarkMode ? 'bg-slate-900/40 border-slate-700/50' : 'bg-white/60 border-slate-200'}`}>
+              <div className={`w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 ${isDarkMode ? 'bg-slate-800 text-slate-600' : 'bg-slate-100 text-slate-400'}`}>
+                <MessageSquare size={32} />
+              </div>
+              <h3 className={`text-lg font-bold mb-2 ${isDarkMode ? 'text-slate-300' : 'text-slate-700'}`}>No updates yet</h3>
+              <p className={`text-sm max-w-md mx-auto ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}>
+                Share your progress with the community! Post your first update to show the real-world impact of your restoration efforts.
+              </p>
+              <button 
+                onClick={onPostUpdate}
+                className="mt-6 text-emerald-500 font-bold text-sm hover:underline"
+              >
+                Post an Update Now
+              </button>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {org.updates.map((update) => (
+                <UpdateCard key={update.id} update={update} isDarkMode={isDarkMode} />
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const UpdateCard = ({ update, isDarkMode }: { update: any, isDarkMode: boolean }) => {
+  const categoryColors = {
+    'field-work': 'bg-blue-500/10 text-blue-400 border-blue-500/20',
+    'community': 'bg-purple-500/10 text-purple-400 border-purple-500/20',
+    'milestone': 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
+  };
+
+  const date = new Date(update.timestamp).toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric'
+  });
+
+  return (
+    <div className={`backdrop-blur-2xl p-6 rounded-[2rem] border shadow-xl flex flex-col gap-4 transition-all hover:-translate-y-1 ${isDarkMode ? 'bg-slate-900/60 border-slate-700/50 hover:bg-slate-800/80' : 'bg-white/80 border-slate-200 hover:bg-slate-50'}`}>
+      <div className="flex justify-between items-start">
+        <span className={`text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full border ${categoryColors[update.category as keyof typeof categoryColors]}`}>
+          {update.category.replace('-', ' ')}
+        </span>
+        <span className={`text-[10px] font-medium ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}>{date}</span>
+      </div>
+      
+      <div>
+        <h4 className={`text-base font-bold mb-2 leading-tight ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>{update.title}</h4>
+        <p className={`text-xs leading-relaxed line-clamp-3 ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>{update.content}</p>
+      </div>
+
+      <div className={`mt-auto pt-4 border-t flex items-center gap-2 ${isDarkMode ? 'border-slate-700/50' : 'border-slate-100'}`}>
+        <div className={`w-6 h-6 rounded-full flex items-center justify-center ${isDarkMode ? 'bg-slate-800 text-slate-500' : 'bg-slate-100 text-slate-400'}`}>
+           <Clock size={12} />
+        </div>
+        <span className={`text-[10px] font-bold ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}>Verified on Blockchain</span>
       </div>
     </div>
   );

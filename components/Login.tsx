@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Leaf, ArrowRight, User as UserIcon, Building2, ChevronLeft } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Leaf, ArrowRight, User as UserIcon, Building2, AlertCircle, X } from 'lucide-react';
 import { UserRole, User } from '../types';
 import { ORGANIZATIONS } from '../constants';
 
@@ -14,16 +14,65 @@ export const Login: React.FC<Props> = ({ onLogin, isDarkMode = false }) => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [orgId, setOrgId] = useState(ORGANIZATIONS[0].id);
+  const [error, setError] = useState<string | null>(null);
+
+  // Clear error when switching modes
+  useEffect(() => {
+    setError(null);
+  }, [isRegistering]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (name && email) {
-      onLogin({ 
+    setError(null);
+
+    if (!name || !email) {
+      setError("Identification required.");
+      return;
+    }
+
+    const savedUsers = localStorage.getItem('binhi_users');
+    const users: User[] = savedUsers ? JSON.parse(savedUsers) : [];
+
+    if (isRegistering) {
+      // Check if user already exists
+      const existingUser = users.find(u => u.email.toLowerCase() === email.toLowerCase());
+      if (existingUser) {
+        setError("Telemetry uplink already registered. Please login.");
+        return;
+      }
+
+      // Register new user
+      const newUser: User = { 
         name, 
         email, 
         role, 
         orgId: role === 'organization' ? orgId : undefined 
-      });
+      };
+      
+      const updatedUsers = [...users, newUser];
+      localStorage.setItem('binhi_users', JSON.stringify(updatedUsers));
+      
+      // Auto-login after registration
+      localStorage.setItem('binhi_session', JSON.stringify(newUser));
+      onLogin(newUser);
+    } else {
+      // Login attempt
+      const user = users.find(u => u.email.toLowerCase() === email.toLowerCase());
+      
+      if (!user) {
+        setError("Uplink not found. Please register your designation.");
+        return;
+      }
+
+      // Verify name (acting as a simple password for prototype)
+      if (user.name.toLowerCase() !== name.toLowerCase()) {
+        setError("Designation mismatch. Please verify your identity.");
+        return;
+      }
+
+      // Update session
+      localStorage.setItem('binhi_session', JSON.stringify(user));
+      onLogin(user);
     }
   };
 
@@ -75,6 +124,13 @@ export const Login: React.FC<Props> = ({ onLogin, isDarkMode = false }) => {
               </button>
             </div>
 
+            {error && (
+              <div className={`p-4 rounded-2xl flex items-center gap-3 text-xs font-bold border animate-in slide-in-from-top-2 ${isDarkMode ? 'bg-red-500/10 border-red-500/30 text-red-400' : 'bg-red-50 border-red-200 text-red-600'}`}>
+                <AlertCircle size={16} />
+                {error}
+              </div>
+            )}
+
             <div className="space-y-4">
               <div>
                 <label className={`block text-[10px] font-bold uppercase tracking-widest mb-2 ml-1 ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>
@@ -102,8 +158,8 @@ export const Login: React.FC<Props> = ({ onLogin, isDarkMode = false }) => {
                 />
               </div>
 
-              {role === 'organization' && (
-                <div>
+              {role === 'organization' && isRegistering && (
+                <div className="animate-in fade-in slide-in-from-top-2">
                   <label className={`block text-[10px] font-bold uppercase tracking-widest mb-2 ml-1 ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>Select Forest Hub</label>
                   <select
                     value={orgId}

@@ -9,6 +9,7 @@ interface Props {
   onCommunityClick: () => void;
   onTopUp: () => void;
   isDarkMode?: boolean;
+  level?: number;
 }
 
 export const HUD: React.FC<Props> = ({ 
@@ -18,13 +19,13 @@ export const HUD: React.FC<Props> = ({
   balance, 
   onCommunityClick,
   onTopUp,
-  isDarkMode = false
+  isDarkMode = false,
+  level = 1
 }) => {
   const [isStatsCollapsed, setIsStatsCollapsed] = useState(true);
   
   const flightHours = (totalCo2 / 0.8).toFixed(1);
-  const level = Math.floor(treesPlanted / 8) + 1;
-  const progress = ((treesPlanted % 8) / 8) * 100;
+  const progress = ((treesPlanted % 5) / 5) * 100;
 
   return (
     <div className="fixed inset-0 pointer-events-none p-4 md:p-8 z-20 flex flex-col justify-between">
@@ -32,25 +33,24 @@ export const HUD: React.FC<Props> = ({
       {/* Top Navigation Bar */}
       <div className="flex justify-between items-start pointer-events-none animate-in fade-in slide-in-from-top-8 duration-1000">
         
-        {/* Left: User & AI */}
-        <div className="flex flex-col gap-2 md:gap-3 pointer-events-auto">
-          {/* Removed AI Insight button to prevent overlap with Profile button */}
+        {/* Left: Nav Stack Placeholder (To balance layout) */}
+        <div className="w-10 md:w-16 h-10 md:h-16 flex flex-col gap-2 md:gap-3 pointer-events-none">
         </div>
 
         {/* Center: Title & Level */}
-        <div className={`flex flex-col items-center backdrop-blur-2xl border shadow-xl px-4 md:px-10 py-2 md:py-4 rounded-2xl md:rounded-3xl max-w-[180px] md:max-w-none pointer-events-auto ${isDarkMode ? 'bg-slate-900/60 border-slate-700/50' : 'bg-white/60 border-slate-200'}`}>
+        <div className={`flex flex-col items-center backdrop-blur-2xl border shadow-xl px-4 md:px-10 py-2 md:py-4 rounded-2xl md:rounded-3xl max-w-[140px] sm:max-w-[180px] md:max-w-none mx-2 md:mx-0 pointer-events-auto ${isDarkMode ? 'bg-slate-900/60 border-slate-700/50' : 'bg-white/60 border-slate-200'}`}>
            <div className={`flex items-center gap-1.5 md:gap-2 text-[8px] md:text-[10px] font-bold uppercase tracking-[0.2em] mb-0.5 md:mb-1 ${isDarkMode ? 'text-emerald-400' : 'text-emerald-600'}`}>
               <Leaf size={12} className="text-emerald-500" />
               <span>Level {level}</span>
            </div>
-           <h1 className={`font-serif text-lg md:text-3xl tracking-tight truncate w-full text-center ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>{forestName}</h1>
+           <h1 className={`font-serif text-base md:text-3xl tracking-tight truncate w-full text-center ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>{forestName}</h1>
         </div>
 
         {/* Right: Community */}
         <div className="flex flex-col gap-3 pointer-events-auto">
           <button 
             onClick={onCommunityClick}
-            className={`backdrop-blur-xl border shadow-lg p-2 md:p-4 rounded-xl md:rounded-2xl transition-all active:scale-95 group ${isDarkMode ? 'bg-slate-900/60 border-slate-700/50 hover:bg-slate-800' : 'bg-white/60 border-slate-200 hover:bg-slate-100'}`}
+            className={`backdrop-blur-xl border shadow-lg p-2.5 md:p-4 rounded-xl md:rounded-2xl transition-all active:scale-95 group ${isDarkMode ? 'bg-slate-900/60 border-slate-700/50 hover:bg-slate-800' : 'bg-white/60 border-slate-200 hover:bg-slate-100'}`}
           >
             <Globe size={20} className={`transition-colors group-hover:text-emerald-400 ${isDarkMode ? 'text-slate-300' : 'text-slate-600'}`} />
           </button>
@@ -106,8 +106,8 @@ export const HUD: React.FC<Props> = ({
           {/* Right: Progress Bar */}
           <div className={`backdrop-blur-xl border p-3 md:p-4 rounded-xl md:rounded-2xl shadow-lg w-full md:max-w-[240px] ${isDarkMode ? 'bg-slate-900/60 border-slate-700/50' : 'bg-white/60 border-slate-200'}`}>
             <div className="flex justify-between items-end mb-1.5 md:mb-2">
-              <span className={`text-[8px] md:text-[10px] font-bold uppercase tracking-widest ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>Milestone</span>
-              <span className={`text-[8px] md:text-[10px] font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>{treesPlanted % 8}/8</span>
+              <span className={`text-[8px] md:text-[10px] font-bold uppercase tracking-widest ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>Next Level Progress</span>
+              <span className={`text-[8px] md:text-[10px] font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>{treesPlanted % 5}/5</span>
             </div>
             <div className={`w-full h-1.5 md:h-2 rounded-full overflow-hidden ${isDarkMode ? 'bg-slate-800' : 'bg-slate-200'}`}>
                <div 

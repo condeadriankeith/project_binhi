@@ -5,11 +5,11 @@ export const GRID_SIZE = 5;
 export const INITIAL_BALANCE = 0.00; // Start at 0 per user requirement
 
 export const TREE_SPECIES: TreeType[] = [
-  { id: ItemType.HORNBEAM, name: 'Narra', price: 250.00, co2Factor: 2.3, unlockLevel: 1, icon: '🌳' },
-  { id: ItemType.CEDAR, name: 'Molave', price: 350.00, co2Factor: 3.1, unlockLevel: 1, icon: '🌳' },
-  { id: ItemType.MAPLE, name: 'Yakal', price: 500.00, co2Factor: 4.5, unlockLevel: 2, icon: '🌲' },
-  { id: ItemType.SPRUCE, name: 'Banuyo', price: 800.00, co2Factor: 5.2, unlockLevel: 2, icon: '🌳' },
-  { id: ItemType.WILLOW, name: 'Malugai', price: 1200.00, co2Factor: 6.8, unlockLevel: 3, icon: '🌿' }
+  { id: ItemType.NARRA, name: 'Narra', price: 35.00, co2Factor: 2.5, unlockLevel: 1, icon: '🌳' },
+  { id: ItemType.MOLAVE, name: 'Molave', price: 40.00, co2Factor: 3.0, unlockLevel: 1, icon: '🌳' },
+  { id: ItemType.BANABA, name: 'Banaba', price: 155.00, co2Factor: 4.5, unlockLevel: 2, icon: '🌳' },
+  { id: ItemType.DAO, name: 'Dao', price: 50.00, co2Factor: 5.0, unlockLevel: 2, icon: '🌳' },
+  { id: ItemType.KAMAGONG, name: 'Kamagong', price: 90.00, co2Factor: 7.0, unlockLevel: 3, icon: '🌳' }
 ];
 
 const generateTiles = (): TileData[] => {

@@ -11,7 +11,7 @@ interface Props {
 export const ProfilePage: React.FC<Props> = ({ user, onClose, isDarkMode = false }) => {
   return (
     <div className={`fixed inset-0 z-[100] flex items-center justify-center backdrop-blur-xl animate-in fade-in duration-300 ${isDarkMode ? 'bg-[#0B1120]/90' : 'bg-slate-200/90'}`}>
-      <div className={`w-full max-w-lg border rounded-[40px] shadow-[0_40px_80px_rgba(0,0,0,0.6)] overflow-hidden relative ${isDarkMode ? 'bg-slate-900/80 border-slate-700/50' : 'bg-white/90 border-slate-200'}`}>
+      <div className={`w-full max-w-lg border rounded-[32px] md:rounded-[40px] shadow-[0_40px_80px_rgba(0,0,0,0.6)] overflow-hidden relative mx-4 ${isDarkMode ? 'bg-slate-900/80 border-slate-700/50' : 'bg-white/90 border-slate-200'}`}>
         
         {/* Close Button */}
         <button 
@@ -29,10 +29,10 @@ export const ProfilePage: React.FC<Props> = ({ user, onClose, isDarkMode = false
           </div>
         </div>
 
-        <div className="pt-16 pb-10 px-10">
+        <div className="pt-16 pb-8 md:pb-10 px-6 md:px-10">
           <div className="flex justify-between items-start mb-8">
             <div>
-              <h2 className={`text-2xl font-serif tracking-tight ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>{user.name}</h2>
+              <h2 className={`text-xl md:text-2xl font-serif tracking-tight ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>{user.name}</h2>
               <div className="flex items-center gap-2 text-emerald-400 text-xs font-bold uppercase tracking-widest mt-1">
                 <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
                 {user.role === 'organization' ? 'Organization Admin' : 'Certified Individual Architect'}
@@ -44,16 +44,25 @@ export const ProfilePage: React.FC<Props> = ({ user, onClose, isDarkMode = false
           <div className="space-y-6">
             <InfoItem icon={<Mail size={16} />} label="Communications Uplink" value={user.email} isDarkMode={isDarkMode} />
             <InfoItem icon={<Shield size={16} />} label="Security Protocol" value="Encrypted (AES-256)" isDarkMode={isDarkMode} />
-            <InfoItem icon={<Calendar size={16} />} label="Active Since" value="March 2026" isDarkMode={isDarkMode} />
+            <InfoItem icon={<Calendar size={16} />} label="Active Since" value="April 2026" isDarkMode={isDarkMode} />
           </div>
 
-          <div className={`mt-10 pt-8 border-t ${isDarkMode ? 'border-slate-800' : 'border-slate-200'}`}>
-            <div className={`p-6 rounded-3xl border ${isDarkMode ? 'bg-slate-800/40 border-slate-700/50' : 'bg-slate-50 border-slate-200'}`}>
-              <h3 className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-4">Planetary Achievement</h3>
-              <div className="flex gap-3">
+          <div className={`mt-8 md:mt-10 pt-6 md:pt-8 border-t ${isDarkMode ? 'border-slate-800' : 'border-slate-200'}`}>
+            <div className={`p-4 md:p-6 rounded-[24px] md:rounded-3xl border ${isDarkMode ? 'bg-slate-800/40 border-slate-700/50' : 'bg-slate-50 border-slate-200'}`}>
+              <h3 className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-3 md:mb-4">Planetary Achievement</h3>
+              <div className="flex flex-wrap gap-2 md:gap-3">
                 <Badge label="Early Adopter" color="bg-emerald-500/20 text-emerald-400" />
-                <Badge label="Pioneer" color="bg-blue-500/20 text-blue-400" />
-                <Badge label="Guardian" color="bg-orange-500/20 text-orange-400" />
+                {user.role === 'organization' ? (
+                  <>
+                    <Badge label="Archipelago Partner" color="bg-blue-500/20 text-blue-400" />
+                    <Badge label="Verified Entity" color="bg-purple-500/20 text-purple-400" />
+                  </>
+                ) : (
+                  <>
+                    <Badge label="Pioneer" color="bg-blue-500/20 text-blue-400" />
+                    <Badge label="Guardian" color="bg-orange-500/20 text-orange-400" />
+                  </>
+                )}
               </div>
             </div>
           </div>
