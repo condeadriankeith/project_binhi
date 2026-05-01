@@ -1,9 +1,12 @@
 export enum ItemType {
   NARRA = 'NARRA',
+  MALUGAI = 'MALUGAI',
+  KALUMPIT = 'KALUMPIT',
+  UDLING = 'UDLING',
+  BUGNAI = 'BUGNAI',
+  KUPANG = 'KUPANG',
   MOLAVE = 'MOLAVE',
-  BANABA = 'BANABA',
-  DAO = 'DAO',
-  KAMAGONG = 'KAMAGONG'
+  AGARWOOD = 'AGARWOOD'
 }
 
 export type UserRole = 'individual' | 'organization';
@@ -11,9 +14,17 @@ export type UserRole = 'individual' | 'organization';
 export interface User {
   name: string;
   email: string;
+  password?: string;
   role: UserRole;
   orgId?: string;
+  rank?: string;
+  badges?: string[];
+  wateringStreak?: number;
+  lastWateredDate?: string;
+  wateringHistory?: Record<string, boolean>;
 }
+
+export type GrowthStage = 1 | 2 | 3 | 4; // 1: Seedling, 2: Sprout, 3: Sapling, 4: Tree
 
 export interface DonationEvent {
   id: string;
@@ -43,6 +54,9 @@ export interface TileData {
   scale?: number;
   offsetX?: number;
   offsetZ?: number;
+  growthStage?: GrowthStage;
+  lastWatered?: string;
+  plantedBy?: string; // email of the user who planted it
 }
 
 export type UpdateCategory = 'field-work' | 'community' | 'milestone';

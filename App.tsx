@@ -1,8 +1,12 @@
 import React, { useState, useCallback, useMemo, useEffect } from 'react';
-import { X, LogOut, Map as MapIcon, ChevronLeft, ChevronRight, Activity, ChevronDown, ChevronUp, User as UserIcon, Settings as SettingsIcon } from 'lucide-react';
+import * as THREE from 'three';
+import { X, LogOut, Map as MapIcon, ChevronLeft, ChevronRight, Activity, ChevronDown, ChevronUp, User as UserIcon, Settings as SettingsIcon, Droplet } from 'lucide-react';
+import { motion, AnimatePresence, LayoutGroup } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
 import { IslandScene } from './components/IslandScene';
 import { HUD } from './components/HUD';
 import { BotanistKit } from './components/BotantistKit';
+import { PaymentGatewayModal } from './components/PaymentGatewayModal';
 import { CommunityImpact } from './components/CommunityImpact';
 import { ImpactMap } from './components/ImpactMap';
 import { Login } from './components/Login';
@@ -10,12 +14,14 @@ import { OrgDashboard } from './components/OrgDashboard';
 import { ProfilePage } from './components/ProfilePage';
 import { SettingsPage } from './components/SettingsPage';
 import { PostUpdateModal } from './components/PostUpdateModal';
-import { ORGANIZATIONS, INITIAL_BALANCE, TREE_SPECIES } from './constants';
-import { TileData, ItemType, GameState, Organization, User, ImpactUpdate } from './types';
+import { ExpandingIconButton } from './components/ExpandingIconButton';
+import { ORGANIZATIONS, INITIAL_BALANCE, TREE_SPECIES, generateTiles } from './constants';
+import { TileData, ItemType, GameState, Organization, User, ImpactUpdate, GrowthStage } from './types';
 
 type View = 'island' | 'map' | 'dashboard';
 
 const App: React.FC = () => {
+  const { t } = useTranslation();
   const [user, setUser] = useState<User | null>(null);
   const [currentView, setCurrentView] = useState<View>('island');
   const [activeOrgIndex, setActiveOrgIndex] = useState(0);
@@ -23,7 +29,11 @@ const App: React.FC = () => {
   const [isHubCollapsed, setIsHubCollapsed] = useState(true);
   const [showProfile, setShowProfile] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  const [showPaymentGateway, setShowPaymentGateway] = useState(false);
   const [showPostUpdateModal, setShowPostUpdateModal] = useState(false);
+  const [isWateringMode, setIsWateringMode] = useState(false);
+  const [activeUI, setActiveUI] = useState<'none' | 'seedVault' | 'hudOrg' | 'hudStats' | 'hudFunds' | 'language'>('none');
+  const [focusedIslandIndex, setFocusedIslandIndex] = useState(0);
   const [isDarkMode, setIsDarkMode] = useState<boolean>(() => {
     const saved = localStorage.getItem('binhi_theme');
     return saved ? JSON.parse(saved) : false;
@@ -52,6 +62,18 @@ const App: React.FC = () => {
   useEffect(() => {
     localStorage.setItem('binhi_theme', JSON.stringify(isDarkMode));
   }, [isDarkMode]);
+
+  useEffect(() => {
+    if (user) {
+      const savedUsers = localStorage.getItem('binhi_users');
+      if (savedUsers) {
+        const users: User[] = JSON.parse(savedUsers);
+        const updatedUsers = users.map(u => u.email === user.email ? user : u);
+        localStorage.setItem('binhi_users', JSON.stringify(updatedUsers));
+        localStorage.setItem('binhi_session', JSON.stringify(user));
+      }
+    }
+  }, [user]);
 
   useEffect(() => {
     localStorage.setItem('binhi_haptics', JSON.stringify(hapticsEnabled));
@@ -92,6 +114,18 @@ const App: React.FC = () => {
 
   const [selectedTree, setSelectedTree] = useState<ItemType | null>(null);
 
+  const toggleWateringMode = useCallback(() => {
+    setIsWateringMode(prev => {
+      if (!prev) setSelectedTree(null); // Ensure planting mode is off
+      return !prev;
+    });
+  }, []);
+
+  const handleSelectTree = useCallback((type: ItemType | null) => {
+    setSelectedTree(type);
+    if (type) setIsWateringMode(false); // Ensure watering mode is off
+  }, []);
+
   // Real-time Sync across browser instances
   useEffect(() => {
     const channel = new BroadcastChannel('binhi_sync');
@@ -131,6 +165,10 @@ const App: React.FC = () => {
 
   useEffect(() => {
     if (user) {
+      // Reset modals on login
+      setShowProfile(false);
+      setShowSettings(false);
+      
       if (user.role === 'organization') {
         setCurrentView('dashboard');
         const idx = orgs.findIndex(o => o.id === user.orgId);
@@ -139,12 +177,25 @@ const App: React.FC = () => {
         setCurrentView('island');
       }
     }
-  }, [user, orgs]);
+  }, [user]); // Removed orgs from dependency to avoid unnecessary resets
 
   const handleLogout = useCallback(() => {
     localStorage.removeItem('binhi_session');
     setUser(null);
+    setShowProfile(false);
+    setShowSettings(false);
   }, []);
+
+  const totalUsers = useMemo(() => {
+    const saved = localStorage.getItem('binhi_users');
+    if (!saved) return 0;
+    try {
+      const users = JSON.parse(saved);
+      return Array.isArray(users) ? users.length : 0;
+    } catch {
+      return 0;
+    }
+  }, [user]); // Recalculate when user state changes (registration/login)
 
   const activeOrg = orgs[activeOrgIndex];
 
@@ -159,16 +210,59 @@ const App: React.FC = () => {
   }, [currentLevel, gameState.level]);
 
   const handleTileClick = useCallback((id: number) => {
-    if (!selectedTree) return;
+    if (isWateringMode) {
+      setOrgs(prev => {
+        const newOrgs = [...prev];
+        const org = { ...newOrgs[activeOrgIndex] };
+        const tiles = [...org.tiles];
+        const idx = tiles.findIndex(t => t.id === id);
+        
+        const tile = tiles[idx];
+        if (!tile || !tile.isPlanted || !tile.growthStage || tile.growthStage >= 4) {
+           return prev; // Nothing to water
+        }
 
-    const treeDef = TREE_SPECIES.find(t => t.id === selectedTree);
-    if (!treeDef) return;
+        // Ownership check
+        if (tile.plantedBy && user && tile.plantedBy !== user.email) {
+          return prev; 
+        }
 
-    if (gameState.balance < treeDef.price) {
-      alert(`Insufficient funds for ${treeDef.name}. Protocol requires ₱${treeDef.price.toLocaleString()}.`);
-      setSelectedTree(null);
+        const today = new Date().toISOString().split('T')[0];
+
+        // Increment growth stage
+        tiles[idx] = { ...tile, growthStage: (tile.growthStage + 1) as GrowthStage, lastWatered: new Date().toISOString() };
+        org.tiles = tiles;
+        newOrgs[activeOrgIndex] = org;
+
+        // Gamification streak logic
+        setUser(u => {
+          if (!u) return u;
+          
+          const newHistory = { ...(u.wateringHistory || {}), [today]: true };
+          const streak = (u.wateringStreak || 0) + 1; // Simplistic streak for demo
+          const badges = u.badges ? [...u.badges] : [];
+          if (streak >= 7 && !badges.includes('7-Day Streak')) badges.push('7-Day Streak');
+          
+          let rank = u.rank || 'Seedling';
+          if (streak > 3) rank = 'Sprout';
+          if (streak > 7) rank = 'Sapling';
+          if (streak > 14) rank = 'Tree Planter';
+          if (streak > 30) rank = 'Forest Guardian';
+
+          return { ...u, wateringStreak: streak, badges, rank, wateringHistory: newHistory };
+        });
+
+        return newOrgs;
+      });
       return;
     }
+
+    if (!selectedTree) return;
+    const treeDef = TREE_SPECIES.find(t => t.id === selectedTree);
+    if (!treeDef || gameState.balance < treeDef.price) return;
+
+    let islandCreated = false;
+    let nextIslandIndex = 0;
 
     setOrgs(prev => {
       const newOrgs = [...prev];
@@ -178,7 +272,13 @@ const App: React.FC = () => {
       
       if (tiles[idx].plantType) return prev;
 
-      tiles[idx] = { ...tiles[idx], plantType: selectedTree, isPlanted: true };
+      tiles[idx] = { 
+        ...tiles[idx], 
+        plantType: selectedTree, 
+        isPlanted: true, 
+        growthStage: 1,
+        plantedBy: user?.email 
+      };
       
       const newDonation = {
         id: Math.random().toString(36).substring(7),
@@ -195,17 +295,77 @@ const App: React.FC = () => {
       org.donations += treeDef.price;
       org.recentDonations = [newDonation, ...(org.recentDonations || [])].slice(0, 20);
       
+      const allPlanted = org.tiles.every(t => t.isPlanted);
+      if (allPlanted) {
+        islandCreated = true;
+        nextIslandIndex = org.tiles.length / 25;
+        
+        // --- Smart 3D Placement with Collision Avoidance ---
+        const centers: {x: number, y: number, z: number}[] = [];
+        for (let i = 0; i < org.tiles.length; i += 25) {
+          const chunk = org.tiles.slice(i, i + 25);
+          const avgX = chunk.reduce((sum, t) => sum + t.x, 0) / 25;
+          const avgZ = chunk.reduce((sum, t) => sum + t.z, 0) / 25;
+          const avgY = (chunk[0] as any).y || 0;
+          centers.push({ x: avgX, y: avgY, z: avgZ });
+        }
+
+        let offsetX = 0;
+        let offsetZ = 0;
+        let offsetY = 0;
+        let isSafe = false;
+        let attempts = 0;
+
+        while (!isSafe && attempts < 50) {
+          attempts++;
+          const angle = Math.random() * Math.PI * 2;
+          const dist = 12 + Math.random() * 10;
+          offsetX = Math.cos(angle) * dist;
+          offsetZ = Math.sin(angle) * dist;
+          offsetY = (Math.random() - 0.5) * 8;
+
+          isSafe = centers.every(c => {
+            const d = Math.sqrt(
+              Math.pow(c.x - offsetX, 2) + 
+              Math.pow(c.y - offsetY, 2) + 
+              Math.pow(c.z - offsetZ, 2)
+            );
+            return d > 12;
+          });
+        }
+
+        const newTiles = generateTiles().map(t => ({
+          ...t, 
+          x: t.x + offsetX, 
+          z: t.z + offsetZ,
+          y: offsetY,
+          id: t.id + (nextIslandIndex * 1000)
+        }));
+        
+        org.tiles = [...org.tiles, ...newTiles];
+        
+        setUser(u => {
+          if (u && !u.badges?.includes('Island Pioneer')) {
+             return { ...u, badges: [...(u.badges||[]), 'Island Pioneer'] };
+          }
+          return u;
+        });
+      }
+
       newOrgs[activeOrgIndex] = org;
       return newOrgs;
     });
 
-    setGameState(prev => ({
-      ...prev,
-      balance: prev.balance - treeDef.price,
-    }));
+    setGameState(prev => {
+      const newBalance = prev.balance - treeDef.price;
+      if (newBalance < treeDef.price) setSelectedTree(null);
+      return { ...prev, balance: newBalance };
+    });
 
-    setSelectedTree(null);
-  }, [selectedTree, activeOrgIndex, gameState.balance, user]);
+    if (islandCreated) {
+      setFocusedIslandIndex(nextIslandIndex);
+    }
+  }, [selectedTree, activeOrgIndex, gameState.balance, user, isWateringMode, orgs]);
 
   const activeTreeData = useMemo(() => TREE_SPECIES.find(t => t.id === selectedTree), [selectedTree]);
 
@@ -219,6 +379,17 @@ const App: React.FC = () => {
     });
   }, [activeOrgIndex]);
 
+  const wateringStats = useMemo(() => {
+    const today = new Date().toISOString().split('T')[0];
+    const owned = activeOrg.tiles.filter(t => t.isPlanted && t.plantedBy === user?.email);
+    const wateredToday = owned.filter(t => t.lastWatered?.startsWith(today)).length;
+    return {
+      total: owned.length,
+      watered: wateredToday
+    };
+  }, [activeOrg.tiles, user]);
+
+
   const nextOrg = () => setActiveOrgIndex((prev) => (prev + 1) % orgs.length);
   const prevOrg = () => setActiveOrgIndex((prev) => (prev - 1 + orgs.length) % orgs.length);
 
@@ -229,168 +400,143 @@ const App: React.FC = () => {
   return (
     <div className={`relative w-full h-screen overflow-hidden select-none font-sans transition-colors duration-500 ${isDarkMode ? 'bg-[#0B1120] text-white' : 'bg-slate-50 text-slate-900'}`}>
       
-      {currentView === 'dashboard' && user.role === 'organization' ? (
+      {user.role === 'organization' && currentView === 'dashboard' ? (
         <OrgDashboard 
           org={activeOrg} 
           onManageIslands={() => setCurrentView('island')}
+          onEnterLocalImpact={() => setCurrentView('map')}
           onPostUpdate={() => setShowPostUpdateModal(true)}
-          onLogout={() => setUser(null)}
+          onLogout={handleLogout}
           isDarkMode={isDarkMode}
-          uniqueSupporters={Array.from(new Set(activeOrg.recentDonations?.map(d => d.userName) || [])).length + 2482} // Base + session
+          totalArchitects={totalUsers}
         />
-      ) : currentView === 'island' ? (
-        <>
-          <div className={`transition-opacity duration-1000 ${isSceneReady ? 'opacity-100' : 'opacity-0'}`}>
-            <IslandScene 
-              tiles={activeOrg.tiles} 
-              onTileClick={handleTileClick} 
-              islandColor={activeOrg.islandColor}
-              waterColor={activeOrg.waterColor}
-              accentColor={activeOrg.accentColor}
-              orgIndex={activeOrgIndex}
-              isDarkMode={isDarkMode}
-            />
-          </div>
-          
-          <HUD 
-            forestName={activeOrg.name}
-            balance={gameState.balance}
-            treesPlanted={activeOrg.totalTrees}
-            totalCo2={activeOrg.totalCo2}
-            onCommunityClick={() => setGameState(p => ({ ...p, showCommunity: true }))}
-            onTopUp={() => setGameState(p => ({ ...p, balance: p.balance + 1000 }))}
-            isDarkMode={isDarkMode}
-            level={gameState.level}
-          />
-
-          {/* Organization Context Card with Integrated Switcher */}
-          <div className="fixed top-40 md:top-44 left-4 md:left-8 z-30 pointer-events-none transition-all duration-500 animate-in fade-in slide-in-from-left-8 duration-1000 delay-700 fill-mode-both w-full max-w-[280px] md:max-w-[320px]">
-            <div className={`backdrop-blur-2xl p-4 md:p-6 rounded-3xl shadow-[0_20px_40px_rgba(0,0,0,0.5)] border pointer-events-auto flex flex-col gap-3 md:gap-4 group ${isDarkMode ? 'bg-slate-900/60 border-slate-700/50' : 'bg-white/80 border-slate-200'}`}>
-              
-              <div className="flex justify-between items-start gap-2">
-                <div className="flex items-center gap-2 md:gap-3 cursor-pointer overflow-hidden" onClick={() => setIsHubCollapsed(!isHubCollapsed)}>
-                  <div className="w-8 h-8 md:w-10 md:h-10 rounded-xl md:rounded-2xl flex items-center justify-center text-lg md:text-xl shadow-inner shrink-0" style={{ backgroundColor: activeOrg.islandColor }}>
-                      🌍
-                  </div>
-                  <div className="truncate">
-                     <span className="text-[8px] md:text-[9px] font-black uppercase tracking-[0.2em] text-emerald-500/70 block">Restoration Hub</span>
-                     <h2 className="text-sm md:text-lg font-serif leading-tight truncate">{activeOrg.name}</h2>
-                  </div>
-                </div>
-                <button 
-                  onClick={() => setIsHubCollapsed(!isHubCollapsed)}
-                  className={`p-1 md:p-2 rounded-xl transition-colors ${isDarkMode ? 'hover:bg-slate-800 text-slate-400' : 'hover:bg-slate-100 text-slate-500'}`}
-                >
-                  {isHubCollapsed ? <ChevronDown size={18} /> : <ChevronUp size={18} />}
-                </button>
-              </div>
-
-              <div className={`grid transition-all duration-500 ease-in-out ${isHubCollapsed ? 'grid-rows-[0fr] opacity-0' : 'grid-rows-[1fr] opacity-100'}`}>
-                <div className="overflow-hidden flex flex-col gap-3 md:gap-4">
-                  <p className={`text-xs md:text-sm font-medium leading-relaxed italic line-clamp-2 md:line-clamp-none ${isDarkMode ? 'text-slate-300' : 'text-slate-600'}`}>"{activeOrg.mission}"</p>
-                  
-                  <div className={`flex items-center justify-between pt-3 md:pt-4 border-t ${isDarkMode ? 'border-slate-700/50' : 'border-slate-100'}`}>
-                    <div className="flex items-center gap-2">
-                        <div className="w-1.5 h-1.5 md:w-2 md:h-2 rounded-full bg-emerald-500 animate-pulse"></div>
-                        <span className={`text-[9px] md:text-[10px] font-bold uppercase tracking-widest ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>{activeOrg.location}</span>
-                    </div>
-                    
-                    {/* Switcher Controls */}
-                    {user.role === 'individual' && (
-                      <div className={`flex items-center gap-1 rounded-full p-0.5 md:p-1 ${isDarkMode ? 'bg-slate-800/50' : 'bg-slate-100'}`}>
-                        <button onClick={prevOrg} className="p-1 md:p-1.5 hover:bg-emerald-500/10 rounded-full transition-colors text-slate-400 hover:text-emerald-400 shadow-sm">
-                          <ChevronLeft size={16} />
-                        </button>
-                        <button onClick={nextOrg} className="p-1 md:p-1.5 hover:bg-emerald-500/10 rounded-full transition-colors text-slate-400 hover:text-emerald-400 shadow-sm">
-                          <ChevronRight size={16} />
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <BotanistKit 
-            balance={gameState.balance}
-            selectedTool={selectedTree}
-            onSelect={(type) => setSelectedTree(type === selectedTree ? null : type)}
-            isDarkMode={isDarkMode}
-            userLevel={gameState.level}
-          />
-
-          {/* Secondary Actions: Impact & Logout */}
-          <div className="fixed top-24 md:top-32 right-4 md:right-8 z-30 flex flex-col items-end gap-2 md:gap-3 pointer-events-none animate-in fade-in slide-in-from-right-8 duration-1000 delay-700 fill-mode-both">
-            {user.role === 'organization' ? (
-              <button 
-                onClick={() => setCurrentView('dashboard')}
-                className={`pointer-events-auto backdrop-blur-xl p-2.5 md:p-5 rounded-xl md:rounded-3xl shadow-[0_20px_40px_rgba(0,0,0,0.2)] transition-all flex items-center gap-2 md:gap-3 group border ${isDarkMode ? 'bg-slate-900/90 border-slate-700/50 hover:bg-slate-800' : 'bg-white/90 border-slate-200 hover:bg-slate-50'}`}
-              >
-                <div className="bg-emerald-500/20 p-1.5 md:p-2 rounded-lg md:rounded-xl group-hover:scale-110 transition-transform">
-                  <Activity size={18} className="text-emerald-400" />
-                </div>
-                <div className="hidden md:flex flex-col items-start text-left">
-                  <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-emerald-400/70">Return To</span>
-                  <span className={`text-sm font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>Dashboard</span>
-                </div>
-              </button>
-            ) : (
-              <button 
-                onClick={() => setCurrentView('map')}
-                className={`pointer-events-auto backdrop-blur-xl p-2.5 md:p-5 rounded-xl md:rounded-3xl shadow-[0_20px_40px_rgba(0,0,0,0.2)] transition-all flex items-center gap-2 md:gap-3 group border ${isDarkMode ? 'bg-slate-900/90 border-slate-700/50 hover:bg-slate-800' : 'bg-white/90 border-slate-200 hover:bg-slate-50'}`}
-              >
-                <div className="bg-emerald-500/20 p-1.5 md:p-2 rounded-lg md:rounded-xl group-hover:scale-110 transition-transform">
-                  <MapIcon size={18} className="text-emerald-400" />
-                </div>
-                <div className="hidden md:flex flex-col items-start text-left">
-                  <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-emerald-400/70">Restoration</span>
-                  <span className={`text-sm font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>Local Impact</span>
-                </div>
-              </button>
-            )}
-
-            <button 
-              onClick={handleLogout}
-              className={`p-2.5 md:p-4 backdrop-blur-xl border rounded-xl md:rounded-2xl transition-all shadow-lg pointer-events-auto group ${isDarkMode ? 'bg-slate-900/60 border-slate-700/50 hover:bg-slate-800 text-slate-400 hover:text-red-400' : 'bg-white/80 border-slate-200 hover:bg-slate-100 text-slate-500 hover:text-red-500'}`}
-              title="Logout"
-            >
-              <LogOut size={18} />
-            </button>
-          </div>
-        </>
       ) : (
-        <ImpactMap onBack={() => setCurrentView(user.role === 'organization' ? 'dashboard' : 'island')} isDarkMode={isDarkMode} />
+        <LayoutGroup id="main-experience">
+          <AnimatePresence mode="popLayout">
+            {currentView === 'island' ? (
+              <motion.div 
+                key="island"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.5 }}
+                className="relative w-full h-full"
+              >
+                <div className={`transition-opacity duration-1000 ${isSceneReady ? 'opacity-100' : 'opacity-0'}`}>
+                  <IslandScene 
+                    orgs={orgs}
+                    onTileClick={handleTileClick} 
+                    activeOrgIndex={activeOrgIndex}
+                    isDarkMode={isDarkMode}
+                    focusedIslandIndex={focusedIslandIndex}
+                    onIslandFocus={setFocusedIslandIndex}
+                    isWateringMode={isWateringMode}
+                    currentUserEmail={user?.email}
+                  />
+                </div>
+                
+                <HUD 
+                  forestName={activeOrg.name}
+                  balance={gameState.balance}
+                  treesPlanted={activeOrg.totalTrees}
+                  totalCo2={activeOrg.totalCo2}
+                  onCommunityClick={() => setGameState(p => ({ ...p, showCommunity: true }))}
+                  onTopUp={() => setShowPaymentGateway(true)}
+                  onLocalImpactClick={user.role === 'individual' ? () => setCurrentView('map') : undefined}
+                  onPrevOrg={user.role === 'individual' ? prevOrg : undefined}
+                  onNextOrg={user.role === 'individual' ? nextOrg : undefined}
+                  onToggleWatering={toggleWateringMode}
+                  isWateringMode={isWateringMode}
+                  isDarkMode={isDarkMode}
+                  level={gameState.level}
+                  activeUI={activeUI}
+                  setActiveUI={setActiveUI}
+                  user={user}
+                  wateringStats={wateringStats}
+                />
+
+                {user.role === 'individual' && (
+                  <BotanistKit 
+                    balance={gameState.balance}
+                    selectedTool={selectedTree}
+                    onSelect={handleSelectTree}
+                    isDarkMode={isDarkMode}
+                    userLevel={gameState.level}
+                    isActive={activeUI === 'seedVault'}
+                    onToggle={() => setActiveUI(activeUI === 'seedVault' ? 'none' : 'seedVault')}
+                    isHidden={activeUI === 'language'}
+                  />
+                )}
+
+                {/* Watering Indicator */}
+                {isWateringMode && (
+                  <div className={`fixed top-20 left-1/2 -translate-x-1/2 z-50 flex items-center gap-4 backdrop-blur-xl px-6 py-3 rounded-2xl shadow-[0_20px_40px_rgba(0,0,0,0.5)] border animate-in slide-in-from-top-4 fade-in duration-300 ${isDarkMode ? 'bg-slate-900/95 text-white border-blue-500/30' : 'bg-white/95 text-slate-900 border-blue-300'}`}>
+                    <div className="text-blue-500 animate-bounce"><Droplet size={24} /></div>
+                    <div className="flex flex-col">
+                      <span className={`text-[9px] uppercase font-black tracking-[0.2em] ${isDarkMode ? 'text-blue-400' : 'text-blue-600'}`}>{t('watering_mode_active')}</span>
+                      <span className="text-sm font-bold">{t('click_tree_to_water')}</span>
+                    </div>
+                    <button 
+                      onClick={() => setIsWateringMode(false)}
+                      className={`ml-4 p-2 rounded-xl transition-colors ${isDarkMode ? 'hover:bg-slate-800' : 'hover:bg-slate-100 text-slate-500'}`}
+                    >
+                      <X size={16} />
+                    </button>
+                  </div>
+                )}
+              </motion.div>
+            ) : (
+              <ImpactMap 
+                key="map"
+                onBack={() => setCurrentView(user.role === 'organization' ? 'dashboard' : 'island')} 
+                isDarkMode={isDarkMode} 
+              />
+            )}
+          </AnimatePresence>
+        </LayoutGroup>
       )}
 
       {/* Top Left Navigation: Profile & Settings */}
       {currentView !== 'map' && (
-        <div className="fixed top-4 md:top-6 left-4 md:left-8 z-50 flex flex-col gap-2 md:gap-3">
-        <button 
-          onClick={() => setShowProfile(true)}
-          className={`p-2.5 md:p-4 backdrop-blur-xl border rounded-xl md:rounded-2xl transition-all shadow-lg group ${isDarkMode ? 'bg-slate-900/60 border-slate-700/50 hover:bg-slate-800 text-slate-400 hover:text-emerald-400' : 'bg-white/80 border-slate-200 hover:bg-slate-100 text-slate-500 hover:text-emerald-500'}`}
-          title="Profile"
-        >
-          <UserIcon size={20} />
-        </button>
-        <button 
-          onClick={() => setShowSettings(true)}
-          className={`p-2.5 md:p-4 backdrop-blur-xl border rounded-xl md:rounded-2xl transition-all shadow-lg group ${isDarkMode ? 'bg-slate-900/60 border-slate-700/50 hover:bg-slate-800 text-slate-400 hover:text-blue-400' : 'bg-white/80 border-slate-200 hover:bg-slate-100 text-slate-500 hover:text-blue-500'}`}
-          title="Settings"
-        >
-          <SettingsIcon size={20} />
-        </button>
-      </div>
-    )}
+        <LayoutGroup id="top-nav">
+          <div className={`fixed top-4 md:top-6 left-4 md:left-8 z-50 flex flex-col gap-2 md:gap-3 transition-all duration-300 ${activeUI === 'seedVault' ? 'opacity-0 pointer-events-none translate-x-[-20px]' : 'opacity-100 translate-x-0'}`}>
+            <ExpandingIconButton 
+              icon={<UserIcon size={20} />} 
+              label={t('profile')} 
+              onClick={() => setShowProfile(true)} 
+              isDarkMode={isDarkMode}
+            />
+            <ExpandingIconButton 
+              icon={<SettingsIcon size={20} />} 
+              label={t('settings')} 
+              onClick={() => setShowSettings(true)} 
+              isDarkMode={isDarkMode}
+            />
+            {user.role === 'organization' && currentView === 'island' && (
+              <ExpandingIconButton 
+                icon={<ChevronLeft size={20} />} 
+                label={t('dashboard')} 
+                onClick={() => setCurrentView('dashboard')} 
+                isDarkMode={isDarkMode}
+                className="animate-in slide-in-from-left-4 duration-500"
+                activeClassName={isDarkMode ? 'text-emerald-400' : 'text-emerald-600'}
+              />
+            )}
+          </div>
+        </LayoutGroup>
+      )}
 
 
 
       {/* Modals */}
-      {showProfile && user && (
-        <ProfilePage user={user} onClose={() => setShowProfile(false)} isDarkMode={isDarkMode} />
-      )}
+      <AnimatePresence>
+        {showProfile && user && (
+          <ProfilePage key="profile" user={user} onClose={() => setShowProfile(false)} onLogout={handleLogout} isDarkMode={isDarkMode} />
+        )}
+      </AnimatePresence>
 
-      {showSettings && (
+      <AnimatePresence>
+        {showSettings && (
         <SettingsPage 
           onClose={() => setShowSettings(false)} 
           isDarkMode={isDarkMode} 
@@ -400,14 +546,15 @@ const App: React.FC = () => {
           notificationsEnabled={notificationsEnabled}
           onToggleNotifications={() => setNotificationsEnabled(!notificationsEnabled)}
         />
-      )}
+        )}
+      </AnimatePresence>
 
       <CommunityImpact 
         isVisible={gameState.showCommunity}
         onClose={() => setGameState(p => ({ ...p, showCommunity: false }))}
         isDarkMode={isDarkMode}
-        totalTrees={orgs.reduce((sum, o) => sum + o.totalTrees, 0) + 33600000} // Global base + session
-        totalCo2={orgs.reduce((sum, o) => sum + o.totalCo2, 0) + 1800000000} // Global base + session
+        totalTrees={orgs.reduce((sum, o) => sum + o.totalTrees, 0) + 33600000}
+        totalCo2={orgs.reduce((sum, o) => sum + o.totalCo2, 0) + 1800000000}
       />
 
       <PostUpdateModal
@@ -417,15 +564,25 @@ const App: React.FC = () => {
         isDarkMode={isDarkMode}
       />
 
-
+      <AnimatePresence>
+        {showPaymentGateway && (
+          <PaymentGatewayModal 
+            onClose={() => setShowPaymentGateway(false)}
+            onSuccess={(amount) => {
+              setGameState(p => ({ ...p, balance: p.balance + amount }));
+            }}
+            isDarkMode={isDarkMode}
+          />
+        )}
+      </AnimatePresence>
 
       {/* Planting Indicator */}
       {selectedTree && currentView === 'island' && (
         <div className={`fixed top-20 left-1/2 -translate-x-1/2 z-50 flex items-center gap-4 backdrop-blur-xl px-6 py-3 rounded-2xl shadow-[0_20px_40px_rgba(0,0,0,0.5)] border animate-in slide-in-from-top-4 fade-in duration-300 ${isDarkMode ? 'bg-slate-900/95 text-white border-emerald-500/30' : 'bg-white/95 text-slate-900 border-emerald-300'}`}>
           <div className="text-2xl animate-bounce">{activeTreeData?.icon}</div>
           <div className="flex flex-col">
-            <span className={`text-[9px] uppercase font-black tracking-[0.2em] ${isDarkMode ? 'text-emerald-400' : 'text-emerald-600'}`}>Planting Protocol</span>
-            <span className="text-sm font-bold">Select a tile on {activeOrg.name}</span>
+            <span className={`text-[9px] uppercase font-black tracking-[0.2em] ${isDarkMode ? 'text-emerald-400' : 'text-emerald-600'}`}>{t('planting_protocol')}</span>
+            <span className="text-sm font-bold">{t('select_tile', { org: activeOrg.name })}</span>
           </div>
           <button 
             onClick={() => setSelectedTree(null)}

@@ -6,13 +6,16 @@ export const INITIAL_BALANCE = 0.00; // Start at 0 per user requirement
 
 export const TREE_SPECIES: TreeType[] = [
   { id: ItemType.NARRA, name: 'Narra', price: 35.00, co2Factor: 2.5, unlockLevel: 1, icon: '🌳' },
-  { id: ItemType.MOLAVE, name: 'Molave', price: 40.00, co2Factor: 3.0, unlockLevel: 1, icon: '🌳' },
-  { id: ItemType.BANABA, name: 'Banaba', price: 155.00, co2Factor: 4.5, unlockLevel: 2, icon: '🌳' },
-  { id: ItemType.DAO, name: 'Dao', price: 50.00, co2Factor: 5.0, unlockLevel: 2, icon: '🌳' },
-  { id: ItemType.KAMAGONG, name: 'Kamagong', price: 90.00, co2Factor: 7.0, unlockLevel: 3, icon: '🌳' }
+  { id: ItemType.MALUGAI, name: 'Malugai', price: 40.00, co2Factor: 3.0, unlockLevel: 1, icon: '🌲' },
+  { id: ItemType.KALUMPIT, name: 'Kalumpit', price: 55.00, co2Factor: 3.5, unlockLevel: 2, icon: '🌴' },
+  { id: ItemType.UDLING, name: 'Udling', price: 70.00, co2Factor: 4.0, unlockLevel: 2, icon: '🌳' },
+  { id: ItemType.BUGNAI, name: 'Bugnai', price: 85.00, co2Factor: 4.5, unlockLevel: 3, icon: '🌲' },
+  { id: ItemType.KUPANG, name: 'Kupang', price: 100.00, co2Factor: 5.5, unlockLevel: 3, icon: '🌳' },
+  { id: ItemType.MOLAVE, name: 'Molave', price: 120.00, co2Factor: 6.0, unlockLevel: 4, icon: '🌲' },
+  { id: ItemType.AGARWOOD, name: 'Agarwood', price: 200.00, co2Factor: 8.0, unlockLevel: 5, icon: '🌴' }
 ];
 
-const generateTiles = (): TileData[] => {
+export const generateTiles = (): TileData[] => {
   const tiles: TileData[] = [];
   let id = 0;
   for (let x = -Math.floor(GRID_SIZE / 2); x <= Math.floor(GRID_SIZE / 2); x++) {
@@ -26,6 +29,7 @@ const generateTiles = (): TileData[] => {
         scale: 0.9 + Math.random() * 0.3,
         offsetX: 0,
         offsetZ: 0,
+        growthStage: 1,
       });
     }
   }

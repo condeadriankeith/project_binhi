@@ -1,6 +1,6 @@
-
 import React from 'react';
 import { X, Share2, Globe, Users, TrendingUp } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 interface Props {
   isVisible: boolean;
@@ -17,12 +17,16 @@ export const CommunityImpact: React.FC<Props> = ({
   totalTrees = 33600000,
   totalCo2 = 1800000000
 }) => {
+  const { t } = useTranslation();
   if (!isVisible) return null;
 
   const handleShare = () => {
-    const text = `I just contributed to Project Binhi! Together we've planted ${totalTrees.toLocaleString()} trees and offset over ${(totalCo2 / 1000000).toFixed(1)}M kg of CO2. Join the restoration! 🌍🌳`;
+    const text = t('share_text', { 
+      trees: totalTrees.toLocaleString(), 
+      co2: (totalCo2 / 1000000).toFixed(1) 
+    });
     navigator.clipboard.writeText(text);
-    alert('Impact summary copied to clipboard!');
+    alert(t('copied_to_clipboard'));
   };
 
   const formatLargeNumber = (num: number) => {
@@ -64,27 +68,27 @@ export const CommunityImpact: React.FC<Props> = ({
           <div className="mt-10 md:mt-12">
             <div className={`flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.2em] mb-2 ${isDarkMode ? 'text-emerald-400' : 'text-emerald-600'}`}>
               <Users size={12} />
-              Global Community
+              {t('global_community')}
             </div>
-            <h2 className={`font-serif text-xl md:text-3xl mb-4 tracking-tight ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>Every tree matters.</h2>
+            <h2 className={`font-serif text-xl md:text-3xl mb-4 tracking-tight ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>{t('every_tree_matters')}</h2>
             <p className={`text-sm leading-relaxed mb-8 ${isDarkMode ? 'text-slate-400' : 'text-slate-600'}`}>
-              Individual action causes a ripple effect. Join thousands of planetary architects working together to restore the Earth's ecosystems.
+              {t('individual_action_desc')}
             </p>
 
             {/* Stats Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
               <div className={`p-4 rounded-2xl border ${isDarkMode ? 'bg-slate-800/50 border-slate-700/50' : 'bg-slate-50 border-slate-200'}`}>
-                <p className={`text-[10px] uppercase font-bold tracking-widest mb-1 ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}>Trees Planted</p>
+                <p className={`text-[10px] uppercase font-bold tracking-widest mb-1 ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}>{t('global_trees')}</p>
                 <p className={`text-2xl font-serif ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>{formatLargeNumber(totalTrees)}</p>
                 <div className={`flex items-center gap-1 text-xs mt-1 font-medium ${isDarkMode ? 'text-emerald-400' : 'text-emerald-600'}`}>
-                  <TrendingUp size={12} /> +12% this month
+                  <TrendingUp size={12} /> +12% {t('this_month')}
                 </div>
               </div>
               <div className={`p-4 rounded-2xl border ${isDarkMode ? 'bg-slate-800/50 border-slate-700/50' : 'bg-slate-50 border-slate-200'}`}>
-                <p className={`text-[10px] uppercase font-bold tracking-widest mb-1 ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}>CO2 Offset (kg)</p>
+                <p className={`text-[10px] uppercase font-bold tracking-widest mb-1 ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}>{t('global_co2')}</p>
                 <p className={`text-2xl font-serif ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>{formatLargeNumber(totalCo2)}</p>
                 <div className={`flex items-center gap-1 text-xs mt-1 font-medium ${isDarkMode ? 'text-emerald-400' : 'text-emerald-600'}`}>
-                  <TrendingUp size={12} /> +8% this month
+                  <TrendingUp size={12} /> +8% {t('this_month')}
                 </div>
               </div>
             </div>
@@ -94,7 +98,7 @@ export const CommunityImpact: React.FC<Props> = ({
               className="w-full bg-emerald-600/20 text-emerald-400 border border-emerald-500/30 rounded-2xl py-4 font-bold flex items-center justify-center gap-2 hover:bg-emerald-600/30 transition-all active:scale-[0.98] shadow-lg hover:shadow-emerald-900/20"
             >
                <Share2 size={18} />
-               Share Impact
+               {t('share_impact')}
             </button>
           </div>
         </div>

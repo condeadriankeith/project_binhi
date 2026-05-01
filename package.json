@@ -12,10 +12,13 @@
   "dependencies": {
     "@react-three/drei": "9.121.4",
     "@react-three/fiber": "9.0.0-rc.0",
+    "framer-motion": "^12.38.0",
+    "i18next": "^26.0.8",
     "lucide-react": "0.460.0",
     "maplibre-gl": "^5.20.1",
     "react": "19.0.0",
     "react-dom": "19.0.0",
+    "react-i18next": "^17.0.6",
     "serve": "^14.2.4",
     "three": "0.174.0"
   },
